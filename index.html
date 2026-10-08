@@ -143,7 +143,7 @@ body{background:radial-gradient(circle at 92% -5%,rgba(57,197,187,.28),transpare
 .brand b{color:var(--pink);font-weight:700}
 .hint{color:var(--acc)}
 .eq{display:flex;gap:3px;align-items:flex-end;height:26px;margin:-8px 0 16px;overflow:hidden}
-.eq i{flex:0 0 7px;height:100%;background:linear-gradient(var(--pink),#39c5bb);border-radius:2px;transform-origin:bottom;transform:scaleY(var(--hi));animation:eq 1.4s ease-in-out infinite;animation-delay:var(--d)}
+.eq i{flex:1 1 0;min-width:2px;height:100%;background:linear-gradient(var(--pink),#39c5bb);border-radius:2px;transform-origin:bottom;transform:scaleY(var(--hi));animation:eq 1.4s ease-in-out infinite;animation-delay:var(--d)}
 @keyframes eq{0%,100%{transform:scaleY(var(--lo))}50%{transform:scaleY(var(--hi))}}
 @media (prefers-reduced-motion:reduce){.eq i{animation:none}}
 .credit{color:var(--acc)}
@@ -244,6 +244,7 @@ const IC={
  txt:'<svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M8 13h8M8 17h6"/></svg>',
  crop:'<svg viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>',
  red:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h6M7 14h3"/><rect x="13" y="12" width="5" height="4" fill="currentColor"/></svg>',
+ nup:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>',
  img:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="m21 16-5-5-9 9"/></svg>'};
 let dl=null;
 try{ if(window.claude&&claude.use) claude.use("downloads").then(d=>{dl=d}).catch(()=>{}) }catch(e){}
@@ -269,10 +270,12 @@ const TOOLS={
  txt:{g:"Konversi",title:"PDF ke Teks",desc:"Ambil teks dari PDF menjadi berkas .txt. PDF hasil pindai (gambar) tidak punya teks yang bisa diambil.",multi:false},
  crop:{g:"Organisasi",title:"Potong",desc:"Seret di pratinjau untuk menentukan area yang dipertahankan. Klik berkas untuk memilih PDF yang diproses.",multi:false},
  red:{g:"Organisasi",title:"Sensor",desc:"Gambar kotak hitam di atas bagian rahasia pada pratinjau. Halaman yang disensor dijadikan gambar sehingga teks di bawahnya benar-benar hilang. Klik berkas untuk memilih PDF.",multi:false},
+ nup:{g:"Organisasi",title:"Banyak per Lembar",desc:"Susun beberapa halaman dalam satu lembar (2, 4, 6, atau 9). Berguna untuk mencetak hemat kertas. Klik berkas untuk memilih PDF.",multi:false},
  p2w:{g:"Konversi",title:"PDF ke Word",desc:"Ubah PDF menjadi dokumen Word (.docx) berisi teks dan paragraf. PDF hasil pindai (berupa gambar) tidak berisi teks, jadi belum bisa dikonversi tanpa OCR.",multi:false},
  w2p:{g:"Konversi",title:"Word ke PDF",desc:"Ubah satu atau beberapa berkas Word (.docx) menjadi PDF. Teks, judul, daftar, tabel sederhana, dan gambar ikut terbawa.",multi:true},
  img:{g:"Konversi",title:"PDF ke Gambar",desc:"Ubah halaman PDF menjadi gambar PNG atau JPG. Pilih halaman lewat pratinjau, atau biarkan kosong untuk semua halaman.",multi:false}};
 
+(function(){const eq=document.querySelector(".eq"); if(!eq) return; const base=[...eq.children].map(e=>e.getAttribute("style")); const fit=()=>{const n=Math.max(8,Math.round((eq.clientWidth+3)/11)); while(eq.children.length<n){const i=document.createElement("i");i.setAttribute("style",base[eq.children.length%base.length]);eq.append(i)} while(eq.children.length>n) eq.lastChild.remove()}; fit(); if(window.ResizeObserver) new ResizeObserver(fit).observe(eq); else addEventListener("resize",fit)})();
 function drawList(){
   const q=$("#q").value.trim().toLowerCase(), box=$("#tools"); box.innerHTML=""; let n=0, lg=null;
   const ents=Object.entries(TOOLS), gs=[...new Set(ents.map(([,t])=>t.g))];
@@ -305,14 +308,14 @@ function openTool(k){
   const o=$("#opts");
   if(k==="merge"){o.innerHTML='<label class="chk"><input type="checkbox" id="pv"> Tampilkan pratinjau halaman</label><p class="note">Dengan pratinjau, halaman bisa digeser dan dihapus satu per satu. Tanpa pratinjau, semua halaman tiap berkas digabung sesuai urutan berkas.</p><button class="btn pri full" id="go">Gabungkan</button>';$("#pv").checked=mergePreview;$("#pv").onchange=()=>{mergePreview=$("#pv").checked;drawFiles()}}
   if(k==="split") o.innerHTML='<label for="ranges">Halaman terpilih (otomatis dari pratinjau, atau ketik: 1-3, 5, 8-10)</label><input type="text" id="ranges" placeholder="1-3, 5, 8-10"><label for="sfmt">Format hasil</label><select id="sfmt"><option value="pdf">PDF</option><option value="jpg">JPG (gambar)</option></select><div id="modeBox"><label for="smode">Pengelompokan PDF</label><select id="smode"><option value="sep">Satu file per rentang</option><option value="one">Satu file gabungan</option><option value="each">Satu file per halaman</option></select></div><div id="jqBox" hidden><label for="jq">Kualitas JPG</label><select id="jq"><option value="0.92|2.5">Tinggi (file besar)</option><option value="0.8|1.8" selected>Sedang</option><option value="0.6|1.2">Rendah (file kecil)</option></select></div><p class="note" id="fmtNote"></p><button class="btn pri full" id="go">Pisahkan</button>';
-  if(k==="compress") o.innerHTML='<label for="level">Tingkat kompresi</label><select id="level"><option value="0.8|1.5">Ringan (kualitas tinggi)</option><option value="0.6|1.2" selected>Sedang</option><option value="0.4|1.0">Kuat (ukuran terkecil)</option><option value="target">Sesuai ukuran maksimal</option></select><div id="tgtBox" hidden><label for="tgtVal">Ukuran maksimal</label><div class="two"><input type="text" id="tgtVal" inputmode="decimal" value="1"><select id="tgtUnit" style="width:86px"><option value="1048576" selected>MB</option><option value="1024">KB</option></select></div></div><p class="note">Tiap halaman diubah menjadi gambar JPEG. Teks tidak lagi bisa dipilih atau dicari, dan PDF yang sudah ringan bisa menjadi lebih besar.</p><button class="btn pri full" id="go">Kompres</button>';
+  if(k==="compress") o.innerHTML='<label for="cmode">Jenis kompresi</label><select id="cmode"><option value="keep" selected>Pertahankan teks</option><option value="flat">Halaman jadi gambar</option></select><label for="level">Tingkat kompresi</label><select id="level"><option value="0">Rendah (kualitas tinggi)</option><option value="1" selected>Sedang</option><option value="2">Tinggi (ukuran terkecil)</option><option value="target">Sesuai ukuran maksimal</option></select><div id="tgtBox" hidden><label for="tgtVal">Ukuran maksimal</label><div class="two"><input type="text" id="tgtVal" inputmode="decimal" value="1"><select id="tgtUnit" style="width:86px"><option value="1048576" selected>MB</option><option value="1024">KB</option></select></div></div><p class="note" id="cmpNote">Teks, font, dan tampilan halaman tidak diubah, jadi teks tetap bisa dicari dan disalin. Hanya gambar JPEG di dalam PDF yang diperkecil. PDF yang hampir seluruhnya teks hanya menyusut sedikit.</p><button class="btn pri full" id="go">Kompres</button>';
   if(k==="split"){
     const r=$("#ranges");r.value=rangesText(sPick);r.oninput=onRanges;
     const NOTE={sep:"Tiap rentang yang dipisah koma menjadi satu PDF. Contoh \"1-3, 5\" menghasilkan 2 file: halaman 1–3 dan halaman 5.",one:"Semua halaman terpilih digabung menjadi satu PDF. Contoh \"1-3, 5\" menghasilkan 1 file berisi 4 halaman.",each:"Tiap halaman terpilih menjadi PDF sendiri. Contoh \"1-3, 5\" menghasilkan 4 file. Jika belum ada yang dipilih, semua halaman dipisah.",jpg:"JPG selalu menghasilkan satu gambar per halaman terpilih, atau semua halaman jika belum ada yang dipilih."};
     const upd=()=>{const j=$("#sfmt").value==="jpg";$("#modeBox").hidden=j;$("#jqBox").hidden=!j;$("#fmtNote").textContent=j?NOTE.jpg:NOTE[$("#smode").value]};
     $("#sfmt").onchange=upd;$("#smode").onchange=upd;upd();
   }
-  if(k==="compress") $("#level").onchange=()=>{$("#tgtBox").hidden=$("#level").value!=="target"};
+  if(k==="compress"){const sync=()=>{$("#tgtBox").hidden=$("#level").value!=="target";$("#cmpNote").textContent=$("#cmode").value==="keep"?"Teks, font, dan tampilan halaman tidak diubah, jadi teks tetap bisa dicari dan disalin. Hanya gambar JPEG di dalam PDF yang diperkecil. PDF yang hampir seluruhnya teks hanya menyusut sedikit.":"Tiap halaman diubah menjadi gambar JPEG. Teks tidak lagi bisa dipilih atau dicari, dan PDF yang sudah ringan bisa menjadi lebih besar."};$("#level").onchange=sync;$("#cmode").onchange=sync}
   if(k==="wm"){
     o.innerHTML='<label for="wmType">Jenis watermark</label><select id="wmType"><option value="text">Teks</option><option value="img">Gambar (logo)</option></select>'
     +'<div id="wmTx"><label for="wmText">Teks watermark</label><input type="text" id="wmText" value="RAHASIA" maxlength="80"><div class="wmrow"><div><label for="wmFont">Jenis font</label><select id="wmFont"><option value="helv">Helvetica (sans-serif)</option><option value="times">Times (serif)</option><option value="cour">Courier (monospasi)</option><option value="custom">Font sendiri (.ttf/.otf)</option></select></div><div><label>Gaya</label><label class="chk"><input type="checkbox" id="wmBold" checked> Tebal</label><label class="chk"><input type="checkbox" id="wmItalic"> Miring</label></div></div><div id="wmFf" hidden><label for="wmFontFile">Berkas font (.ttf atau .otf)</label><input type="file" id="wmFontFile" accept=".ttf,.otf"></div><div class="wmrow"><div><label for="wmSize">Ukuran (pt)</label><input type="number" id="wmSize" value="64" min="8" max="400"></div><div><label for="wmColor">Warna</label><input type="color" id="wmColor" value="#808080"></div></div></div>'
@@ -343,6 +346,7 @@ function openTool(k){
     ["#cpT","#cpB","#cpL","#cpR"].forEach(i=>$(i).oninput=cpInputs); cpSync();
   }
   if(k==="red") o.innerHTML='<label for="rdDpi">Kualitas halaman yang disensor</label><select id="rdDpi"><option value="100">Hemat (100 dpi, berkas kecil)</option><option value="150" selected>Sedang (150 dpi)</option><option value="200">Tinggi (200 dpi, berkas besar)</option></select><p class="note" style="margin-top:12px">Hanya halaman yang punya kotak sensor yang dijadikan gambar (teksnya tidak bisa dicari lagi). Halaman lain tidak berubah. Berkas hasil juga tidak membawa metadata asli.</p><button class="btn pri full" id="go" style="margin-top:12px">Terapkan sensor</button>';
+  if(k==="nup") o.innerHTML='<label for="nuN">Halaman per lembar</label><select id="nuN"><option value="2">2</option><option value="4" selected>4</option><option value="6">6</option><option value="9">9</option></select><div class="wmrow"><div><label for="nuOri">Orientasi lembar</label><select id="nuOri"><option value="auto">Otomatis</option><option value="port">Tegak</option><option value="land">Mendatar</option></select></div><div><label for="nuMar">Margin</label><select id="nuMar"><option value="0">Tanpa</option><option value="18" selected>Kecil</option><option value="36">Sedang</option></select></div></div><label for="nuSz">Ukuran lembar</label><select id="nuSz"><option value="a4">A4</option><option value="first">Ikuti ukuran halaman pertama</option></select><label class="chk"><input type="checkbox" id="nuBd" checked> Garis tepi di setiap halaman</label><button class="btn pri full" id="go" style="margin-top:12px">Susun halaman</button>';
   if(k==="p2w") o.innerHTML='<p class="note">Hasilnya berupa teks dan paragraf. Gambar, tabel, dan tata letak kolom tidak ikut terbawa.</p><button class="btn pri full" id="go">Ubah ke Word</button>';
   if(k==="w2p") o.innerHTML='<p class="note">Hanya format .docx (bukan .doc lama). Font diganti dengan font standar PDF; header, footer, dan kotak teks tidak ikut. Beberapa berkas bisa diubah sekaligus.</p><button class="btn pri full" id="go">Ubah ke PDF</button>';
   if(k==="img"){
@@ -817,6 +821,8 @@ function parseRanges(s,max){
   return res;
 }
 async function extract(src,idx){const o=await PDFLib.PDFDocument.create();(await o.copyPages(src,idx)).forEach(p=>o.addPage(p));return o.save()}
+const LADDERK=[[0.85,1],[0.8,0.9],[0.7,0.8],[0.65,0.75],[0.55,0.65],[0.5,0.5],[0.4,0.4],[0.35,0.33],[0.3,0.25],[0.25,0.2]];
+const CT={keep:[[0.8,1],[0.65,0.75],[0.5,0.5]],flat:[[0.8,1.5],[0.6,1.2],[0.4,1.0]]};
 const LADDER=[[0.85,1.6],[0.75,1.4],[0.65,1.2],[0.55,1.0],[0.45,0.85],[0.35,0.7],[0.3,0.55],[0.25,0.45],[0.2,0.35]];
 async function compressWith(pdf,q,sc,label){
   const out=await PDFLib.PDFDocument.create();
@@ -1134,6 +1140,38 @@ async function mtRead(){
     setSt("Metadata dibaca dari "+f.name+".");
   }catch(e){setSt(e&&e.message||String(e),"err")}
 }
+async function compressKeep(f,q,sc,label){
+  const P=PDFLib, doc=await P.PDFDocument.load(f.bytes,{ignoreEncryption:true,updateMetadata:false}), ctx=doc.context, items=[], nm=o=>o&&o.toString(), N=x=>P.PDFName.of(x);
+  const all=ctx.enumerateIndirectObjects(), skip=new Set();
+  for(const [,obj] of all){ if(obj instanceof P.PDFRawStream&&nm(obj.dict.get(N("Subtype")))==="/Image"){ for(const key of ["SMask","Mask"]){const v=obj.dict.get(N(key)); if(v instanceof P.PDFRef) skip.add(v.toString())} } }
+  for(const [ref,obj] of all){
+    if(!(obj instanceof P.PDFRawStream)||skip.has(ref.toString())) continue;
+    const d=obj.dict; if(nm(d.get(N("Subtype")))!=="/Image") continue;
+    let fl=d.get(N("Filter")); if(fl instanceof P.PDFArray&&fl.size()===1) fl=fl.get(0);
+    if(nm(fl)!=="/DCTDecode"||nm(d.get(N("ImageMask")))==="true"||d.get(N("Mask")) instanceof P.PDFArray) continue;
+    let cs=d.get(N("ColorSpace")), rgb=false, gray=false; if(cs instanceof P.PDFRef) cs=ctx.lookup(cs);
+    if(nm(cs)==="/DeviceRGB") rgb=true; else if(nm(cs)==="/DeviceGray") gray=true;
+    else if(cs instanceof P.PDFArray&&nm(cs.get(0))==="/ICCBased"){const ic=ctx.lookup(cs.get(1)), n=ic&&ic.dict&&ic.dict.get(N("N")), nv=n&&n.asNumber?n.asNumber():0; if(nv===3) rgb=true; else if(nv===1) gray=true}
+    if((!rgb&&!gray)||obj.contents.length<12000) continue;
+    items.push({ref,obj,rgb});
+  }
+  let done=0, i=0;
+  for(const it of items){
+    i++; setSt((label?label+": ":"")+"Memperkecil gambar "+i+" dari "+items.length+"…");
+    try{
+      const bmp=await createImageBitmap(new Blob([it.obj.contents],{type:"image/jpeg"}));
+      const w=Math.max(1,Math.round(bmp.width*sc)), h=Math.max(1,Math.round(bmp.height*sc)), c=document.createElement("canvas"); c.width=w; c.height=h;
+      const x=c.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,w,h); x.imageSmoothingQuality="high"; x.drawImage(bmp,0,0,w,h); if(bmp.close) bmp.close();
+      const bl=await new Promise(r=>c.toBlob(r,"image/jpeg",q)); c.width=c.height=0; if(!bl) continue;
+      const nb=new Uint8Array(await bl.arrayBuffer()); if(nb.length>=it.obj.contents.length*.95) continue;
+      const d=it.obj.dict; d.set(N("Width"),P.PDFNumber.of(w)); d.set(N("Height"),P.PDFNumber.of(h)); d.set(N("BitsPerComponent"),P.PDFNumber.of(8));
+      if(!it.rgb) d.set(N("ColorSpace"),N("DeviceRGB")); d.delete(N("Decode")); d.delete(N("DecodeParms"));
+      ctx.assign(it.ref,P.PDFRawStream.of(d,nb)); done++;
+    }catch(e){}
+  }
+  setSt("Menyusun ulang berkas…");
+  return {bytes:await doc.save(),n:done,total:items.length};
+}
 async function run(k){
   const go=$("#go"); $("#res").hidden=true;
   try{
@@ -1263,6 +1301,28 @@ async function run(k){
       }
       showRes([{name:base(f.name)+"-sensor.pdf",bytes:await out.save()}]); setSt("Selesai: "+tot+" kotak di "+nr+" halaman disensor.");
     }
+    if(k==="nup"){
+      const N=Number($("#nuN").value)||4, ori=$("#nuOri").value, sz=$("#nuSz").value, m=Number($("#nuMar").value)||0, gap=8, bd=$("#nuBd").checked;
+      setSt("Menyusun halaman…");
+      const src=await PDFLib.PDFDocument.load(f.bytes,{ignoreEncryption:true}), pgs=src.getPages(), out=await PDFLib.PDFDocument.create(), emb=await out.embedPages(pgs);
+      const rot=pgs.map(q=>((q.getRotation().angle%360)+360)%360), disp=emb.map((e,i)=>rot[i]%180?[e.height,e.width]:[e.width,e.height]);
+      const land=ori==="land"||(ori==="auto"&&(N===2||N===6));
+      let [SW,SH]=sz==="a4"?[595.28,841.89]:[disp[0][0],disp[0][1]];
+      if(land!==(SW>SH)) [SW,SH]=[SH,SW];
+      const [cols,rows]=(land?{2:[2,1],4:[2,2],6:[3,2],9:[3,3]}:{2:[1,2],4:[2,2],6:[2,3],9:[3,3]})[N];
+      const cw=(SW-2*m-(cols-1)*gap)/cols, ch=(SH-2*m-(rows-1)*gap)/rows;
+      for(let s0=0;s0<pgs.length;s0+=N){
+        const sheet=out.addPage([SW,SH]);
+        for(let j=0;j<N&&s0+j<pgs.length;j++){
+          const i=s0+j, c=j%cols, r=Math.floor(j/cols), [dw,dh]=disp[i], sc=Math.min(cw/dw,ch/dh), w=dw*sc, h=dh*sc, e=emb[i], a=rot[i];
+          const x0=m+c*(cw+gap)+(cw-w)/2, y0=SH-m-(r+1)*ch-r*gap+(ch-h)/2;
+          const org=a===90?[x0,y0+e.width*sc]:a===180?[x0+e.width*sc,y0+e.height*sc]:a===270?[x0+e.height*sc,y0]:[x0,y0];
+          sheet.drawPage(e,{x:org[0],y:org[1],xScale:sc,yScale:sc,rotate:PDFLib.degrees(-a)});
+          if(bd) sheet.drawRectangle({x:x0,y:y0,width:w,height:h,borderColor:PDFLib.rgb(.55,.55,.55),borderWidth:.5});
+        }
+      }
+      showRes([{name:base(f.name)+"-"+N+"up.pdf",bytes:await out.save()}]); setSt("Selesai: "+pgs.length+" halaman jadi "+Math.ceil(pgs.length/N)+" lembar.");
+    }
     if(k==="rot"){
       if(rotFile!==f) throw new Error("Pilih berkas lebih dulu.");
       const nr=rotD.filter((d,i)=>d&&!rotX.has(i)).length;
@@ -1284,25 +1344,29 @@ async function run(k){
     }
     if(k==="compress"){
       
-      const pdf=await pdfjsLib.getDocument({data:f.bytes.slice()}).promise, before=f.bytes.length, lv=$("#level").value;
-      let bytes, note="";
-      if(lv!=="target"){const [q,sc]=lv.split("|").map(Number);bytes=await compressWith(pdf,q,sc,"Mengompres")}
+      const mode=$("#cmode").value, keep=mode==="keep", lv=$("#level").value, before=f.bytes.length;
+      const pdf=keep?null:await pdfjsLib.getDocument({data:f.bytes.slice()}).promise;
+      let bytes, note="", ok="", cnt=0;
+      const one=async(q,sc,label)=>{if(keep){const r=await compressKeep(f,q,sc,label);cnt=Math.max(cnt,r.n);return r.bytes}return compressWith(pdf,q,sc,label)};
+      if(lv!=="target"){const [q,sc]=CT[mode][Number(lv)||0]; bytes=await one(q,sc,"Mengompres")}
       else{
         const val=parseFloat(($("#tgtVal").value||"").replace(",","."));
         if(!(val>0)) throw new Error("Isi ukuran maksimal dengan angka lebih dari 0.");
-        const target=val*Number($("#tgtUnit").value);
-        let lo=0,hi=LADDER.length-1,best=null,smallest=null,tries=0;
+        const target=val*Number($("#tgtUnit").value), L=keep?LADDERK:LADDER;
+        let lo=0,hi=L.length-1,best=null,smallest=null,tries=0;
         while(lo<=hi){
           const mid=(lo+hi)>>1; tries++;
-          const r=await compressWith(pdf,LADDER[mid][0],LADDER[mid][1],"Percobaan "+tries+" (target "+fmt(target)+")");
+          const r=await one(L[mid][0],L[mid][1],"Percobaan "+tries+" (target "+fmt(target)+")");
           if(!smallest||r.length<smallest.length) smallest=r;
+          if(keep&&cnt===0) break;
           if(r.length<=target){best=r;hi=mid-1}else lo=mid+1;
         }
-        if(best) bytes=best; else{bytes=smallest;note=" Target belum tercapai bahkan di kualitas terendah; ini hasil terkecil yang bisa dicapai."}
+        if(best) bytes=best; else{bytes=smallest;if(!(keep&&cnt===0)) note=" Target belum tercapai bahkan di kualitas terendah; ini hasil terkecil yang bisa dicapai."}
       }
+      if(keep){ if(cnt) ok=" "+cnt+" gambar diperkecil; teks tetap bisa dicari."; else note=" Tidak ada gambar JPEG yang bisa diperkecil di PDF ini, jadi ukurannya nyaris tidak berubah. Coba jenis \"Halaman jadi gambar\" jika teks tidak perlu dicari." }
       const after=bytes.length, pct=Math.round((1-after/before)*100);
       if(after>=before) setSt("Hasil ("+fmt(after)+") tidak lebih kecil dari aslinya ("+fmt(before)+"). Pakai berkas asli, atau turunkan ukuran maksimal."+note,"warn");
-      else setSt(fmt(before)+" → "+fmt(after)+" (hemat "+pct+"%)."+note,note?"warn":"");
+      else setSt(fmt(before)+" → "+fmt(after)+" (hemat "+pct+"%)."+note+ok,note?"warn":"");
       showRes([{name:base(f.name)+"-kompres.pdf",bytes}]);
     }
   }catch(e){ setSt(e&&e.message||String(e),"err") }
