@@ -54,6 +54,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 .rdo{position:absolute;background:rgba(0,0,0,.85);outline:1px solid #000;cursor:pointer}.rdo.on{outline:2px solid var(--pink)}
 .hf3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .pg.bk{cursor:pointer}
+.rw[draggable=true]{cursor:grab}.rw.dg{opacity:.4}.frow{display:grid;grid-template-columns:minmax(120px,1fr) 2fr;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}.frow>label{font-size:.85rem;word-break:break-word}.frow input[type=text],.frow textarea,.frow select{width:100%;font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
 .note{font-size:.82rem;color:var(--mute);margin:12px 0 0}
 .work{overflow:auto;padding:28px 24px}
 .sheet{max-width:860px;min-height:520px;margin:0 auto;background:var(--panel);border-radius:6px;box-shadow:0 2px 14px rgba(20,40,60,.1);padding:28px}
@@ -164,6 +165,20 @@ body.bgmode::before{display:block}
 body.bgmode #mascot{display:none}
 body.bgmode .rail,body.bgmode .side{background:color-mix(in srgb,var(--side) 55%,transparent);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
 body.bgmode .sheet{background:color-mix(in srgb,var(--panel) 86%,transparent);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+
+@media (pointer:coarse){
+ .btn{min-height:44px}
+ .btn.sm,.seg button,#back,#add2{min-height:40px;min-width:40px}
+ .btn.sm{padding:6px 12px}
+ .tb .btn{padding:6px 4px;min-width:0}
+ .chk input,input[type=checkbox],input[type=radio]{width:24px;height:24px}
+ input[type=range]{height:32px}
+ input[type=file]{padding:8px 0;min-height:44px}
+ .pg .n.mv{padding:2px 4px}.pg .n.mv button{min-width:34px;min-height:34px}
+ .pg .del{width:32px;height:32px;font-size:.85rem}.pg .ck{width:28px;height:28px}
+ .sgh{width:32px;height:32px;right:-16px;bottom:-16px;border-radius:50%}
+ .cph{width:36px;height:36px}
+}
 </style>
 </head>
 <body>
@@ -252,6 +267,10 @@ const IC={
  exi:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="14" height="14" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m3 15 4-4 4 4 2-2 4 4"/><path d="M19 3v9m0 0-3-3m3 3 3-3"/></svg>',
  blank:'<svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke-dasharray="3 2"/><path d="m9.5 12.5 5 5m0-5-5 5"/></svg>',
  scan:'<svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3.2"/></svg>',
+
+ order:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="9" rx="1"/><path d="M6 16h12m0 0-3-3m3 3-3 3"/></svg>',
+ resz:'<svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1"/><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg>',
+ form:'<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8"/><rect x="8" y="15" width="4" height="2"/></svg>',
  img:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="m21 16-5-5-9 9"/></svg>'};
 let dl=null;
 try{ if(window.claude&&claude.use) claude.use("downloads").then(d=>{dl=d}).catch(()=>{}) }catch(e){}
@@ -283,7 +302,11 @@ const TOOLS={
  blank:{g:"Organisasi",title:"Hapus Halaman Kosong",desc:"Deteksi dan hapus halaman kosong otomatis, dengan pratinjau yang bisa disesuaikan. Klik berkas untuk memilih PDF.",multi:false},
  scan:{g:"Konversi",title:"Pindai (Kamera)",desc:"Foto dokumen dengan kamera atau pilih dari galeri, rapikan, lalu jadikan PDF. Urutan mengikuti daftar berkas.",multi:true},
  exi:{g:"Konversi",title:"Ekstrak Gambar",desc:"Ambil gambar yang tertanam di PDF menjadi berkas JPG atau PNG. Klik berkas untuk memilih PDF.",multi:false},
- p2w:{g:"Konversi",title:"PDF ke Word",desc:"Ubah PDF menjadi dokumen Word (.docx) berisi teks dan paragraf. PDF hasil pindai (berupa gambar) tidak berisi teks, jadi belum bisa dikonversi tanpa OCR.",multi:false},
+
+ order:{g:"Organisasi",title:"Atur Halaman",desc:"Ubah urutan halaman dengan menyeret thumbnail, gandakan, sisipkan halaman kosong, atau hapus. Klik berkas untuk memilih PDF.",multi:false},
+ resz:{g:"Organisasi",title:"Ubah Ukuran Halaman",desc:"Samakan semua halaman ke ukuran kertas tertentu (A4, A3, Letter, dan lainnya). Klik berkas untuk memilih PDF.",multi:false},
+ form:{g:"Organisasi",title:"Isi Formulir",desc:"Isi kolom formulir PDF langsung di sini. Klik berkas untuk memilih PDF.",multi:false},
+ p2w:{g:"Konversi",title:"PDF ke Word",desc:"Ubah PDF menjadi dokumen Word (.docx) berisi teks, paragraf, tabel, dan gambar. PDF hasil pindai (berupa gambar) tidak berisi teks, jadi belum bisa dikonversi tanpa OCR.",multi:false},
  w2p:{g:"Konversi",title:"Word ke PDF",desc:"Ubah satu atau beberapa berkas Word (.docx) menjadi PDF. Teks, judul, daftar, tabel sederhana, dan gambar ikut terbawa.",multi:true},
  img:{g:"Konversi",title:"PDF ke Gambar",desc:"Ubah halaman PDF menjadi gambar PNG atau JPG. Pilih halaman lewat pratinjau, atau biarkan kosong untuk semua halaman.",multi:false}};
 
@@ -301,7 +324,7 @@ function drawList(){
   $("#noTool").hidden=n>0;
 }
 $("#q").oninput=drawList;
-function clearAll(){blFile=null;blInk=null;blX=new Set();rdFile=null;rdR={};rdSel=-1;cpFile=null;sgFile=null;sgPos=null;sgOv=null;rotFile=null;rotD=[];rotX=new Set();files=[];mpages=[];sel=0;results=[];selFile=null;sPick=new Set();cur=0;mcur=0;tileEls=[];try{thumbs.clear()}catch(e){}const rs=$("#res");if(rs)rs.hidden=true;setSt("")}
+function clearAll(){odFile=null;odL=[];frmFile=null;frmGet=[];blFile=null;blInk=null;blX=new Set();rdFile=null;rdR={};rdSel=-1;cpFile=null;sgFile=null;sgPos=null;sgOv=null;rotFile=null;rotD=[];rotX=new Set();files=[];mpages=[];sel=0;results=[];selFile=null;sPick=new Set();cur=0;mcur=0;tileEls=[];try{thumbs.clear()}catch(e){}const rs=$("#res");if(rs)rs.hidden=true;setSt("")}
 $("#back").onclick=()=>{clearAll();tool=null;setAccept("pdf");$("#toolView").hidden=true;$("#listView").hidden=false;drawFiles()};
 
 function setAccept(n){
@@ -369,7 +392,10 @@ function openTool(k){
     o.innerHTML='<button class="btn pri full" id="scCam" type="button">📷 Ambil foto dengan kamera</button><input type="file" id="scIn" accept="image/*" capture="environment" hidden><p class="note">Di ponsel tombol ini membuka kamera. Di komputer, pakai tombol Tambah untuk memilih gambar. Ambil foto satu per satu, lalu atur urutannya di daftar berkas.</p><label for="scF">Perapian</label><select id="scF"><option value="doc" selected>Dokumen (abu-abu, kontras ditingkatkan)</option><option value="orig">Warna asli</option><option value="bw">Hitam-putih</option></select><div class="wmrow"><div><label for="scSz">Ukuran halaman</label><select id="scSz"><option value="a4p">A4 tegak</option><option value="a4l">A4 mendatar</option><option value="img">Ikuti foto</option></select></div><div><label for="scMar">Margin</label><select id="scMar"><option value="0" selected>Tanpa</option><option value="18">Kecil</option><option value="36">Sedang</option></select></div></div><button class="btn pri full" id="go" style="margin-top:12px">Buat PDF</button>';
     $("#scCam").onclick=()=>$("#scIn").click(); $("#scIn").onchange=e=>{addFiles([...e.target.files]);e.target.value=""};
   }
-  if(k==="p2w") o.innerHTML='<p class="note">Hasilnya berupa teks dan paragraf. Gambar, tabel, dan tata letak kolom tidak ikut terbawa.</p><button class="btn pri full" id="go">Ubah ke Word</button>';
+  if(k==="order") o.innerHTML='<p class="note">Atur halaman di area kerja: seret thumbnail untuk memindahkan, atau pakai tombol di bawahnya. Perubahan baru dipakai setelah tombol di bawah ditekan.</p><button class="btn pri full" id="go" style="margin-top:12px">Terapkan urutan</button>';
+  if(k==="resz") o.innerHTML='<label for="rzSz">Ukuran kertas</label><select id="rzSz"><option value="a4" selected>A4</option><option value="a3">A3</option><option value="a5">A5</option><option value="letter">Letter</option><option value="legal">Legal</option></select><div class="wmrow"><div><label for="rzOri">Orientasi</label><select id="rzOri"><option value="auto">Ikuti tiap halaman</option><option value="port">Tegak</option><option value="land">Mendatar</option></select></div><div><label for="rzMar">Margin</label><select id="rzMar"><option value="0">Tanpa</option><option value="18" selected>Kecil</option><option value="36">Sedang</option></select></div></div><label for="rzMode">Cara menyesuaikan</label><select id="rzMode"><option value="fit" selected>Muat utuh (bisa ada ruang kosong)</option><option value="fill">Penuh (tepi bisa terpotong)</option></select><p class="note">Isi halaman tetap berupa vektor dan teks, tidak diubah jadi gambar. Margin hanya dipakai pada cara "Muat utuh".</p><button class="btn pri full" id="go" style="margin-top:12px">Ubah ukuran</button>';
+  if(k==="form") o.innerHTML='<label class="chk"><input type="checkbox" id="frmFlat"> Ratakan setelah diisi (kolom tidak bisa diubah lagi)</label><p class="note">Kolom formulir muncul di area kerja. Hanya kolom yang kamu ubah yang ditulis ulang. Huruf di luar Latin tidak didukung font bawaan PDF.</p><button class="btn pri full" id="go" style="margin-top:12px">Simpan formulir</button>';
+  if(k==="p2w") o.innerHTML='<label class="chk"><input type="checkbox" id="p2Img" checked> Sertakan gambar</label><label class="chk"><input type="checkbox" id="p2Tbl" checked> Deteksi tabel</label><label class="chk"><input type="checkbox" id="p2Bd" checked> Beri garis pada tabel</label><p class="note">Teks, paragraf, tabel, dan gambar dibawa ke Word. Tabel dikenali dari kolom teks yang sejajar, jadi tabel dengan tata letak rumit atau teks berkolom koran bisa kurang tepat. PDF hasil pindai tetap butuh OCR.</p><button class="btn pri full" id="go">Ubah ke Word</button>';
   if(k==="w2p") o.innerHTML='<p class="note">Hanya format .docx (bukan .doc lama). Font diganti dengan font standar PDF; header, footer, dan kotak teks tidak ikut. Beberapa berkas bisa diubah sekaligus.</p><button class="btn pri full" id="go">Ubah ke PDF</button>';
   if(k==="img"){
     o.innerHTML='<label for="ranges">Halaman terpilih (kosong = semua halaman)</label><input type="text" id="ranges" placeholder="1-3, 5, 8-10"><label for="ifmt">Format gambar</label><select id="ifmt"><option value="png">PNG (tajam, file besar)</option><option value="jpg">JPG (file lebih kecil)</option></select><label for="iq">Resolusi</label><select id="iq"><option value="1.4">Rendah (~100 dpi)</option><option value="2.1" selected>Standar (~150 dpi)</option><option value="3.1">Tinggi (~220 dpi)</option></select><p class="note">Satu gambar per halaman. Jika hasilnya lebih dari satu, tersedia tombol untuk menyimpan semuanya sebagai ZIP.</p><button class="btn pri full" id="go">Ubah ke gambar</button>';
@@ -539,6 +565,8 @@ function drawSel(){
   if(tool==="crop"&&f&&f.kind!=="docx"){drawCrop(f);return}
   if(tool==="red"&&f&&f.kind!=="docx"){drawRed(f);return}
   if(tool==="blank"&&f&&f.kind!=="docx"){drawBlank(f);return}
+  if(tool==="order"&&f&&f.kind!=="docx"){drawOrder(f);return}
+  if(tool==="form"&&f&&f.kind!=="docx"){drawForm(f);return}
   if((tool!=="split"&&tool!=="img")||!f||f.kind==="docx"){box.hidden=true;box.innerHTML="";return}
   if(selFile!==f){selFile=f;sPick=new Set();cur=0;const r=$("#ranges");if(r)r.value=""}
   box.hidden=false; tileEls=[];
@@ -840,6 +868,69 @@ function drawBlank(f){
   if(blInk) build();
   else{ $("#pgw").textContent="Memeriksa halaman…"; blAnalyze(f).then(()=>{if(blFile!==f) return; blApply(); build()}).catch(e=>setSt(e&&e.message||String(e),"err")) }
 }
+/* atur halaman, formulir, ubah ukuran */
+let odFile=null, odL=[], odId=0, odDrag=-1, frmFile=null, frmGet=[];
+function placeEmb(pg,e,a,x0,y0,sc){
+  const org=a===90?[x0,y0+e.width*sc]:a===180?[x0+e.width*sc,y0+e.height*sc]:a===270?[x0+e.height*sc,y0]:[x0,y0];
+  pg.drawPage(e,{x:org[0],y:org[1],xScale:sc,yScale:sc,rotate:PDFLib.degrees(-a)});
+}
+function drawOrder(f){
+  const box=$("#selBox"); box.hidden=false;
+  if(odFile!==f){odFile=f;odL=Array.from({length:f.pages},(_,i)=>({s:i,id:++odId}))}
+  box.innerHTML='<div class="sh"><div><b>Urutan halaman</b><span class="badge"></span></div></div><div class="pgwrap" id="pgw"></div><div class="sf"><button class="btn sm" id="odRev">Balik urutan</button><button class="btn sm" id="odRes">Pulihkan</button></div><p class="note">Seret halaman untuk memindahkannya, atau pakai ◀ ▶. ⧉ menggandakan, ＋ menyisipkan halaman kosong sesudahnya, ✕ menghapus.</p>';
+  const mv=(i,j)=>{if(i===j||j<0||j>=odL.length)return;const [x]=odL.splice(i,1);odL.splice(j,0,x);paint()};
+  const paint=()=>{
+    const bd=box.querySelector(".badge"); if(bd) bd.textContent=odL.length+" halaman";
+    const g=document.createElement("div"); g.className="pgs";
+    odL.forEach((it,i)=>{
+      const w=document.createElement("div"); w.className="rw"; w.draggable=true;
+      w.ondragstart=e=>{odDrag=i;e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",String(i));w.classList.add("dg")};
+      w.ondragend=()=>{odDrag=-1;w.classList.remove("dg")};
+      w.ondragover=e=>{e.preventDefault()}; w.ondrop=e=>{e.preventDefault();e.stopPropagation();if(odDrag>=0) mv(odDrag,i);odDrag=-1};
+      const t=document.createElement("div"); t.className="pg rt"; const th=document.createElement("div"); th.className="pgi";
+      if(it.s<0){th.textContent="Kosong"}
+      else{const key=f.id+":"+it.s, u=thumbs.get(key); if(u){const im=document.createElement("img");im.src=u;im.alt="";im.draggable=false;th.append(im)}else{th.textContent="…";jobs.set(th,{th,p:{f,i:it.s},key});io.observe(th)}}
+      const n=document.createElement("div"); n.className="n"; n.textContent=(i+1)+(it.s>=0&&it.s!==i?" (asli "+(it.s+1)+")":""); t.append(th,n); w.append(t);
+      const mk=(row,txt,lab,fn)=>{const b=document.createElement("button");b.className="btn sm";b.textContent=txt;b.setAttribute("aria-label",lab+" halaman "+(i+1));b.onclick=fn;row.append(b)};
+      const r1=document.createElement("div"), r2=document.createElement("div"); r1.className=r2.className="tb";
+      mk(r1,"◀","Geser ke kiri",()=>mv(i,i-1)); mk(r1,"▶","Geser ke kanan",()=>mv(i,i+1));
+      mk(r2,"⧉","Gandakan",()=>{odL.splice(i+1,0,{s:it.s,id:++odId});paint()}); mk(r2,"＋","Sisipkan halaman kosong setelah",()=>{odL.splice(i+1,0,{s:-1,id:++odId});paint()});
+      mk(r2,"✕","Hapus",()=>{if(odL.length>1){odL.splice(i,1);paint()}});
+      w.append(r1,r2); g.append(w);
+    });
+    $("#pgw").textContent=""; $("#pgw").append(g);
+  };
+  $("#odRev").onclick=()=>{odL.reverse();paint()}; $("#odRes").onclick=()=>{odL=Array.from({length:f.pages},(_,i)=>({s:i,id:++odId}));paint()};
+  paint();
+}
+async function drawForm(f){
+  const box=$("#selBox"); box.hidden=false; frmFile=f; frmGet=[];
+  box.innerHTML='<div class="sh"><div><b>Kolom formulir</b><span class="badge"></span></div></div><div id="frmList">Membaca formulir…</div>';
+  try{
+    const P=PDFLib, doc=await P.PDFDocument.load(f.bytes,{ignoreEncryption:true}), fields=doc.getForm().getFields(), pages=doc.getPages(), list=$("#frmList"); if(frmFile!==f||!list) return;
+    list.textContent=""; let skipped=0;
+    for(const fl of fields){
+      const name=fl.getName(); let pn=""; try{const wd=fl.acroField.getWidgets()[0], pr=wd&&wd.P&&wd.P(), ix=pr?pages.findIndex(q=>q.ref===pr):-1; if(ix>=0) pn=" (hal. "+(ix+1)+")"}catch(e){}
+      const row=document.createElement("div"); row.className="frow"; const lb=document.createElement("label"); lb.textContent=name+pn; let el, g=null;
+      if(fl instanceof P.PDFTextField){
+        el=fl.isMultiline()?document.createElement("textarea"):document.createElement("input"); if(el.tagName==="INPUT") el.type="text"; else el.rows=3;
+        const o0=fl.getText()||""; el.value=o0; const ml=fl.getMaxLength&&fl.getMaxLength(); if(ml) el.maxLength=ml;
+        g={read:()=>el.value,changed:v=>v!==o0,apply:(x,v)=>v?x.setText(v):x.setText(undefined)};
+      }else if(fl instanceof P.PDFCheckBox){
+        el=document.createElement("input"); el.type="checkbox"; const o0=fl.isChecked(); el.checked=o0;
+        g={read:()=>el.checked,changed:v=>v!==o0,apply:(x,v)=>v?x.check():x.uncheck()};
+      }else if(fl instanceof P.PDFDropdown||fl instanceof P.PDFOptionList||fl instanceof P.PDFRadioGroup){
+        el=document.createElement("select"); const op=fl.getOptions(), cur=(fl.getSelected()||[]).concat? [].concat(fl.getSelected()||[])[0]||"":"";
+        const e0=document.createElement("option"); e0.value=""; e0.textContent="(kosong)"; el.append(e0);
+        op.forEach(v=>{const e=document.createElement("option");e.value=v;e.textContent=v;el.append(e)}); el.value=cur;
+        g={read:()=>el.value,changed:v=>v!==cur,apply:(x,v)=>{if(v){x.select(v)}else if(x.clear){x.clear()}}};
+      }else{skipped++;continue}
+      el.id="frm"+frmGet.length; lb.htmlFor=el.id; row.append(lb,el); list.append(row); frmGet.push({name,...g});
+    }
+    const bd=box.querySelector(".badge"); if(bd) bd.textContent=frmGet.length+" kolom"+(skipped?" ("+skipped+" tombol/tanda tangan dilewati)":"");
+    if(!frmGet.length) list.textContent="PDF ini tidak punya kolom formulir yang bisa diisi.";
+  }catch(e){const l=$("#frmList"); if(l) l.textContent="Formulir tidak bisa dibaca: "+(e&&e.message||e)}
+}
 function drawFiles(){
   const has=files.length>0; $("#drop").hidden=has; $("#filesBox").hidden=!has;
   if(sel>=files.length) sel=Math.max(0,files.length-1);
@@ -988,38 +1079,128 @@ const wv=(el,a="val")=>el?el.getAttributeNS(WNS,a):null;
 const isOn=el=>!!el&&!["0","false","off"].includes(wv(el));
 
 /* PDF -> Word */
+let p2wStat={img:0,tbl:0};
 async function pdfToDocx(f){
-  const pdf=await pdfjsLib.getDocument({data:f.bytes.slice()}).promise, paras=[]; let total=0, base=11;
-  const sizes=[];
+  const gv=id=>{const e=$(id);return e?e.checked:true}, wantImg=gv("#p2Img"), wantTbl=gv("#p2Tbl"), wantBd=gv("#p2Bd");
+  const pdf=await pdfjsLib.getDocument({data:f.bytes.slice()}).promise, blocks=[], media=[], sizes=[]; let total=0, nImg=0, nTbl=0;
+  const OPS=pdfjsLib.OPS, mul=(o,m)=>[o[0]*m[0]+o[2]*m[1],o[1]*m[0]+o[3]*m[1],o[0]*m[2]+o[2]*m[3],o[1]*m[2]+o[3]*m[3],o[0]*m[4]+o[2]*m[5]+o[4],o[1]*m[4]+o[3]*m[5]+o[5]];
+  const buildTable=rows=>{
+    const x0=Math.floor(Math.min(...rows.map(r=>r.segs[0].x0))), x1=Math.ceil(Math.max(...rows.map(r=>r.segs[r.segs.length-1].x1))), occ=new Uint16Array(x1-x0+3);
+    rows.forEach(r=>r.segs.forEach(g=>{for(let x=Math.floor(g.x0)-x0;x<=Math.ceil(g.x1)-x0;x++) occ[x]++}));
+    const thr=Math.max(2,Math.ceil(rows.length*.4)), cols=[]; let s0=-1;
+    for(let x=0;x<occ.length;x++){ if(occ[x]>=thr){if(s0<0)s0=x} else if(s0>=0){cols.push([s0+x0,x-1+x0]);s0=-1} }
+    const cm=[]; for(const c of cols){const l=cm[cm.length-1]; if(l&&c[0]-l[1]<6) l[1]=c[1]; else cm.push([c[0],c[1]])}
+    if(cm.length<2) return null;
+    const colOf=g=>{const ix=[]; cm.forEach((c,i)=>{if(Math.min(g.x1,c[1])-Math.max(g.x0,c[0])>1) ix.push(i)}); if(ix.length) return ix; const mid=(g.x0+g.x1)/2; let bi=0,bd=1e9; cm.forEach((c,i)=>{const d=Math.abs((c[0]+c[1])/2-mid); if(d<bd){bd=d;bi=i}}); return [bi]};
+    let multi=0; const bx=cm.map(c=>[c[0],c[1]]); const out=rows.map(r=>{
+      const at=new Map(); r.segs.forEach(g=>{const ix=colOf(g); if(ix.length===1){bx[ix[0]][0]=Math.min(bx[ix[0]][0],g.x0);bx[ix[0]][1]=Math.max(bx[ix[0]][1],g.x1)} if(!at.has(ix[0])) at.set(ix[0],{t:g.text,span:ix.length,last:ix[ix.length-1]}); else at.get(ix[0]).t+=" "+g.text});
+      if(new Set(r.segs.flatMap(g=>colOf(g))).size>=2) multi++;
+      const cells=[]; for(let c=0;c<cm.length;){const g=at.get(c); if(g){cells.push({t:g.t,span:g.span});c+=g.span} else{cells.push({t:"",span:1});c++}} return cells;
+    });
+    if(multi<rows.length*.6) return null;
+    const widths=bx.map((c,i)=>i<bx.length-1?Math.max(30,bx[i+1][0]-c[0]):Math.max(36,c[1]-c[0]+12));
+    const num=t=>/^[\d.,\s%$()+\-–]+$|^Rp\.?\s*[\d.,]+$/i.test(t), right=cm.map((_,i)=>{const b=out.slice(1).map(r=>{let c0=0,v="";for(const c of r){if(c0===i&&c.span===1)v=c.t;c0+=c.span}return v}).filter(Boolean); return b.length>0&&b.filter(num).length>=b.length*.75});
+    return {widths,rows:out,right};
+  };
   for(let n=1;n<=pdf.numPages;n++){
-    setSt("Membaca teks halaman "+n+" dari "+pdf.numPages+"…");
-    const tc=await (await pdf.getPage(n)).getTextContent();
+    setSt("Membaca halaman "+n+" dari "+pdf.numPages+"…");
+    const page=await pdf.getPage(n), tc=await page.getTextContent(), pb=[];
     const its=tc.items.filter(t=>t.str&&t.str.length).map(t=>({s:t.str,x:t.transform[4],y:t.transform[5],w:t.width||0,h:Math.abs(t.transform[3])||t.height||10}));
-    if(!its.some(t=>t.s.trim())) {paras.push({pb:1});continue}
-    total+=its.length; its.sort((a,b)=>b.y-a.y||a.x-b.x);
-    const lines=[];
-    for(const it of its){const L=lines[lines.length-1]; if(L&&Math.abs(L.y-it.y)<Math.max(2,L.h*.5)){L.t.push(it);L.h=Math.max(L.h,it.h)}else lines.push({y:it.y,h:it.h,t:[it]})}
-    lines.forEach(L=>{L.t.sort((a,b)=>a.x-b.x);let s="",end=null;for(const i of L.t){if(end!==null&&i.x-end>i.h*.15&&!/^\s/.test(i.s)&&!/\s$/.test(s))s+=" ";s+=i.s;end=i.x+i.w}L.text=s.replace(/\s+/g," ").trim();L.x=L.t[0].x;if(L.text)sizes.push(L.h)});
-    const med=[...lines.map(l=>l.h)].sort((a,b)=>a-b)[lines.length>>1]||10;
-    let cur=null, prev=null;
-    for(const L of lines){
-      if(!L.text) continue;
-      const big=L.h>med*1.25, bullet=/^([•▪◦●\-–]|\d+[.)])\s/.test(L.text);
-      if(!cur||bullet||big!==cur.big||(prev&&prev.y-L.y>prev.h*1.8)){cur={big,sz:L.h,t:L.text};paras.push(cur)} else cur.t+=" "+L.text;
-      prev=L;
+    if(its.some(t=>t.s.trim())){
+      total+=its.length; its.sort((a,b)=>b.y-a.y||a.x-b.x);
+      const lines=[];
+      for(const it of its){const L=lines[lines.length-1]; if(L&&Math.abs(L.y-it.y)<Math.max(2,L.h*.5)){L.t.push(it);L.h=Math.max(L.h,it.h)}else lines.push({y:it.y,h:it.h,t:[it]})}
+      lines.forEach(L=>{
+        L.t.sort((a,b)=>a.x-b.x); const segs=[]; let end=null,cur=null;
+        for(const i of L.t){
+          if(!i.s.trim()) continue;
+          if(end!==null&&i.x-end>Math.max(L.h*1.1,9)) cur=null;
+          if(!cur){cur={x0:i.x,x1:i.x+i.w,text:""};segs.push(cur)}
+          else if(end!==null&&i.x-end>i.h*.15&&!/^\s/.test(i.s)&&!/\s$/.test(cur.text)) cur.text+=" ";
+          cur.text+=i.s; cur.x1=i.x+i.w; end=i.x+i.w;
+        }
+        segs.forEach(g=>g.text=g.text.replace(/\s+/g," ").trim()); L.segs=segs.filter(g=>g.text);
+        L.text=L.segs.map(g=>g.text).join(" "); L.x=L.t[0].x; if(L.text) sizes.push(L.h);
+      });
+      const tblAt=new Map();
+      if(wantTbl){
+        let i=0; while(i<lines.length){
+          if(lines[i].segs.length<2){i++;continue}
+          let j=i; while(j+1<lines.length&&lines[j+1].segs.length>=2&&(lines[j].y-lines[j+1].y)<2.6*Math.max(lines[j].h,lines[j+1].h)) j++;
+          if(j-i+1>=3){const tb=buildTable(lines.slice(i,j+1)); if(tb){tb.from=i;tb.to=j;for(let q=i;q<=j;q++) tblAt.set(q,tb); i=j+1; continue}}
+          i=j+1;
+        }
+      }
+      const med=[...lines.map(l=>l.h)].sort((a,b)=>a-b)[lines.length>>1]||10;
+      let cur=null, prev=null;
+      lines.forEach((L,q)=>{
+        const tb=tblAt.get(q); if(tb){ if(q===tb.from){pb.push({type:"tbl",top:L.y,tb});nTbl++} cur=null; prev=null; return }
+        if(!L.text) return;
+        const big=L.h>med*1.25, bullet=/^([•▪◦●\-–]|\d+[.)])\s/.test(L.text);
+        if(!cur||bullet||big!==cur.big||(prev&&prev.y-L.y>prev.h*1.8)){cur={type:"p",top:L.y,big,sz:L.h,t:L.text};pb.push(cur)} else cur.t+=" "+L.text;
+        prev=L;
+      });
     }
-    paras.push({pb:1});
+    if(wantImg){
+      try{
+        const ol=await page.getOperatorList(), st=[], boxes=[]; let ctm=[1,0,0,1,0,0];
+        for(let i=0;i<ol.fnArray.length;i++){
+          const op=ol.fnArray[i], a=ol.argsArray[i];
+          if(op===OPS.save) st.push(ctm);
+          else if(op===OPS.restore){if(st.length) ctm=st.pop()}
+          else if(op===OPS.transform) ctm=mul(ctm,a);
+          else if(op===OPS.paintFormXObjectBegin){st.push(ctm); if(a&&a[0]) ctm=mul(ctm,a[0])}
+          else if(op===OPS.paintFormXObjectEnd){if(st.length) ctm=st.pop()}
+          else if(op===OPS.paintImageXObject||op===OPS.paintInlineImageXObject){
+            const pts=[[0,0],[1,0],[0,1],[1,1]].map(([u,v])=>[ctm[0]*u+ctm[2]*v+ctm[4],ctm[1]*u+ctm[3]*v+ctm[5]]);
+            boxes.push([Math.min(...pts.map(q=>q[0])),Math.min(...pts.map(q=>q[1])),Math.max(...pts.map(q=>q[0])),Math.max(...pts.map(q=>q[1]))]);
+          }
+        }
+        const v1=page.getViewport({scale:1}), area=v1.width*v1.height, seen=new Set();
+        const good=boxes.filter(b=>{const w=b[2]-b[0],h=b[3]-b[1],k=b.map(Math.round).join(",");if(seen.has(k))return false;seen.add(k);return w>=24&&h>=24&&w*h<area*.7});
+        if(good.length){
+          const vp=page.getViewport({scale:2}), cv=document.createElement("canvas"); cv.width=Math.ceil(vp.width); cv.height=Math.ceil(vp.height);
+          const cx=cv.getContext("2d"); cx.fillStyle="#fff"; cx.fillRect(0,0,cv.width,cv.height); await page.render({canvasContext:cx,viewport:vp}).promise;
+          for(const b of good){
+            const r=vp.convertToViewportRectangle(b), rx=Math.max(0,Math.floor(Math.min(r[0],r[2]))), ry=Math.max(0,Math.floor(Math.min(r[1],r[3])));
+            const rw=Math.min(cv.width-rx,Math.ceil(Math.abs(r[2]-r[0]))), rh=Math.min(cv.height-ry,Math.ceil(Math.abs(r[3]-r[1]))); if(rw<4||rh<4) continue;
+            const c2=document.createElement("canvas"); c2.width=rw; c2.height=rh; c2.getContext("2d").drawImage(cv,rx,ry,rw,rh,0,0,rw,rh);
+            const png=rw*rh<120000, bl=await new Promise(r2=>c2.toBlob(r2,png?"image/png":"image/jpeg",.88)); c2.width=c2.height=0;
+            media.push({ext:png?"png":"jpg",bytes:new Uint8Array(await bl.arrayBuffer())}); pb.push({type:"img",top:b[3],w:b[2]-b[0],h:b[3]-b[1],idx:media.length-1}); nImg++;
+          }
+          cv.width=cv.height=0;
+        }
+      }catch(e){}
+    }
+    pb.sort((a,b)=>b.top-a.top); blocks.push(...pb); blocks.push({pb:1}); page.cleanup();
   }
-  if(!total) throw new Error("PDF ini tidak berisi teks yang bisa dibaca (kemungkinan hasil pindai atau gambar). Konversi ke Word butuh OCR yang belum tersedia.");
-  while(paras.length&&paras[paras.length-1].pb) paras.pop();
-  base=[...sizes].sort((a,b)=>a-b)[sizes.length>>1]||11;
+  if(!total&&!nImg) throw new Error("PDF ini tidak berisi teks yang bisa dibaca (kemungkinan hasil pindai atau gambar). Konversi ke Word butuh OCR yang belum tersedia.");
+  while(blocks.length&&blocks[blocks.length-1].pb) blocks.pop();
+  const base=[...sizes].sort((a,b)=>a-b)[sizes.length>>1]||11, bsz=Math.max(16,Math.min(28,Math.round(base*2)));
   const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"})[c]).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,"");
-  const body=paras.map(p=>p.pb?'<w:p><w:r><w:br w:type="page"/></w:r></w:p>':'<w:p><w:pPr><w:spacing w:after="120"/></w:pPr><w:r><w:rPr>'+(p.big?'<w:b/>':'')+'<w:sz w:val="'+Math.max(18,Math.min(56,Math.round((p.big?p.sz:base)*2)))+'"/></w:rPr><w:t xml:space="preserve">'+esc(p.t)+'</w:t></w:r></w:p>').join("");
+  const CW=9638;
+  const tblXml=tb=>{
+    const tot=tb.widths.reduce((a,x)=>a+x,0)*20, sc=Math.min(1,CW/tot), tw=tb.widths.map(w=>Math.max(300,Math.round(w*20*sc)));
+    const bd=wantBd?'<w:tblBorders>'+["top","left","bottom","right","insideH","insideV"].map(x=>'<w:'+x+' w:val="single" w:sz="4" w:space="0" w:color="808080"/>').join("")+'</w:tblBorders>':"";
+    return '<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/>'+bd+'<w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>'+tw.map(w=>'<w:gridCol w:w="'+w+'"/>').join("")+'</w:tblGrid>'
+     +tb.rows.map(r=>{let c0=0;return '<w:tr>'+r.map(c=>{const w=tw.slice(c0,c0+c.span).reduce((a,x)=>a+x,0);c0+=c.span;const rt=c.span===1&&tb.right&&tb.right[c0-c.span];return '<w:tc><w:tcPr><w:tcW w:w="'+w+'" w:type="dxa"/>'+(c.span>1?'<w:gridSpan w:val="'+c.span+'"/>':'')+'</w:tcPr><w:p><w:pPr><w:spacing w:after="0"/>'+(rt?'<w:jc w:val="right"/>':'')+'</w:pPr><w:r><w:rPr><w:sz w:val="'+bsz+'"/></w:rPr><w:t xml:space="preserve">'+esc(c.t)+'</w:t></w:r></w:p></w:tc>'}).join("")+'</w:tr>'}).join("")+'</w:tbl><w:p><w:pPr><w:spacing w:after="60"/></w:pPr></w:p>';
+  };
+  const imgXml=(b,k)=>{
+    const wp=Math.min(b.w,481), hp=b.h*wp/b.w, cx=Math.round(wp*12700), cy=Math.round(hp*12700), id=k+1, m=media[b.idx];
+    return '<w:p><w:pPr><w:spacing w:after="120"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="'+cx+'" cy="'+cy+'"/><wp:docPr id="'+id+'" name="Gambar '+id+'"/><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="'+id+'" name="gambar'+id+'.'+m.ext+'"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdImg'+(b.idx+1)+'"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="'+cx+'" cy="'+cy+'"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>';
+  };
+  let ik=0;
+  const body=blocks.map(p=>p.pb?'<w:p><w:r><w:br w:type="page"/></w:r></w:p>':p.type==="tbl"?tblXml(p.tb):p.type==="img"?imgXml(p,ik++):'<w:p><w:pPr><w:spacing w:after="120"/></w:pPr><w:r><w:rPr>'+(p.big?'<w:b/>':'')+'<w:sz w:val="'+Math.max(18,Math.min(56,Math.round((p.big?p.sz:base)*2)))+'"/></w:rPr><w:t xml:space="preserve">'+esc(p.t)+'</w:t></w:r></w:p>').join("");
   const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  const used=new Set(blocks.filter(b=>b.type==="img").map(b=>b.idx)), mf=[...used].map(i=>({name:"word/media/image"+(i+1)+"."+media[i].ext,bytes:media[i].bytes}));
+  const rels=H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+[...used].map(i=>'<Relationship Id="rIdImg'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image'+(i+1)+'.'+media[i].ext+'"/>').join("")+'</Relationships>';
+  p2wStat={img:used.size,tbl:nTbl};
   return makeZip([
-    {name:"[Content_Types].xml",bytes:U8(H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>')},
+    {name:"[Content_Types].xml",bytes:U8(H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Default Extension="jpg" ContentType="image/jpeg"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>')},
     {name:"_rels/.rels",bytes:U8(H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>')},
-    {name:"word/document.xml",bytes:U8(H+'<w:document xmlns:w="'+WNS+'"><w:body>'+body+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>')}
+    {name:"word/_rels/document.xml.rels",bytes:U8(rels)},
+    {name:"word/document.xml",bytes:U8(H+'<w:document xmlns:w="'+WNS+'" xmlns:r="'+RNS+'" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><w:body>'+body+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>')},
+    ...mf
   ]);
 }
 const U8=s=>new TextEncoder().encode(s);
@@ -1302,7 +1483,7 @@ async function run(k){
     }
     if(k==="p2w"){
       const bytes=await pdfToDocx(f); showRes([{name:base(f.name)+".docx",bytes}]);
-      setSt("Selesai. Hasil berupa teks dan paragraf; gambar dan tabel tidak ikut terbawa.");
+      setSt("Selesai: "+p2wStat.tbl+" tabel dan "+p2wStat.img+" gambar ikut terbawa, selain teks dan paragraf.");
     }
     if(k==="w2p"){
       const items=[]; for(const x of files){setSt("Mengubah "+x.name+"…");items.push({name:x.name.replace(/\.docx$/i,"")+".pdf",bytes:await docxToPdf(x)})}
@@ -1504,6 +1685,39 @@ async function run(k){
       }
       if(!out.length) throw new Error(seen?"Gambar di PDF ini berformat khusus yang belum didukung ("+skipped+" gambar dilewati).":"Tidak ada gambar yang tertanam di PDF ini"+($("#exMin").checked?" (gambar kecil diabaikan).":"."));
       showRes(out); setSt("Selesai: "+out.length+" gambar diambil"+(skipped?", "+skipped+" dilewati (format belum didukung).":"."));
+    }
+    if(k==="order"){
+      if(odFile!==f) throw new Error("Pilih berkas lebih dulu.");
+      setSt("Menyusun halaman…");
+      const src=await PDFLib.PDFDocument.load(f.bytes,{ignoreEncryption:true}), out=await PDFLib.PDFDocument.create(), sz=odL.map(it=>it.s>=0?src.getPage(it.s).getSize():null);
+      let first=sz.find(Boolean)||{width:595.28,height:841.89}, prev=null;
+      for(let i=0;i<odL.length;i++){
+        if(odL[i].s>=0){const [cp]=await out.copyPages(src,[odL[i].s]); out.addPage(cp); prev=sz[i]}
+        else{const z=prev||first; out.addPage([z.width,z.height])}
+      }
+      showRes([{name:base(f.name)+"-atur.pdf",bytes:await out.save()}]); setSt("Selesai: "+odL.length+" halaman.");
+    }
+    if(k==="resz"){
+      const SZ={a4:[595.28,841.89],a3:[841.89,1190.55],a5:[419.53,595.28],letter:[612,792],legal:[612,1008]}, [TW,TH]=SZ[$("#rzSz").value], ori=$("#rzOri").value, m=Number($("#rzMar").value)||0, fill=$("#rzMode").value==="fill";
+      setSt("Mengubah ukuran…");
+      const src=await PDFLib.PDFDocument.load(f.bytes,{ignoreEncryption:true}), pgs=src.getPages(), out=await PDFLib.PDFDocument.create(), emb=await out.embedPages(pgs);
+      pgs.forEach((q,i)=>{
+        const a=((q.getRotation().angle%360)+360)%360, e=emb[i], [dw,dh]=a%180?[e.height,e.width]:[e.width,e.height];
+        const land=ori==="land"||(ori==="auto"&&dw>dh), [W,H]=land?[TH,TW]:[TW,TH], sc=fill?Math.max(W/dw,H/dh):Math.min((W-2*m)/dw,(H-2*m)/dh);
+        placeEmb(out.addPage([W,H]),e,a,(W-dw*sc)/2,(H-dh*sc)/2,sc);
+      });
+      showRes([{name:base(f.name)+"-"+$("#rzSz").value+".pdf",bytes:await out.save()}]); setSt("Selesai: "+pgs.length+" halaman diubah ke "+$("#rzSz").value.toUpperCase()+".");
+    }
+    if(k==="form"){
+      if(frmFile!==f) throw new Error("Pilih berkas lebih dulu.");
+      if(!frmGet.length) throw new Error("PDF ini tidak punya kolom formulir yang bisa diisi.");
+      setSt("Mengisi formulir…");
+      const doc=await PDFLib.PDFDocument.load(f.bytes,{ignoreEncryption:true}), form=doc.getForm(), font=await doc.embedFont(PDFLib.StandardFonts.Helvetica); let n=0; const bad=[];
+      for(const g of frmGet){const v=g.read(); if(!g.changed(v)) continue; try{g.apply(form.getField(g.name),v); n++}catch(e){bad.push(g.name)}}
+      if(bad.length&&!n) throw new Error("Kolom tidak bisa diisi: "+bad.slice(0,3).join(", ")+".");
+      if(!n&&!$("#frmFlat").checked) throw new Error("Belum ada kolom yang diubah.");
+      try{form.updateFieldAppearances(font); if($("#frmFlat").checked) form.flatten()}catch(e){throw new Error("Teks berisi karakter yang tidak didukung font standar PDF (hanya huruf Latin).")}
+      showRes([{name:base(f.name)+"-isi.pdf",bytes:await doc.save()}]); setSt("Selesai: "+n+" kolom diisi"+($("#frmFlat").checked?" dan formulir diratakan.":".")+(bad.length?" Gagal: "+bad.slice(0,3).join(", ")+".":""));
     }
     if(k==="rot"){
       if(rotFile!==f) throw new Error("Pilih berkas lebih dulu.");
