@@ -53,6 +53,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 .cpw{overflow:hidden;touch-action:none;cursor:crosshair}.cpo{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,.45);outline:2px solid var(--pink);cursor:move}.cph{position:absolute;width:18px;height:18px;background:var(--pink);border-radius:50%;touch-action:none}
 .rdo{position:absolute;background:rgba(0,0,0,.85);outline:1px solid #000;cursor:pointer}.rdo.on{outline:2px solid var(--pink)}
 .hf3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pg.bk{cursor:pointer}
 .note{font-size:.82rem;color:var(--mute);margin:12px 0 0}
 .work{overflow:auto;padding:28px 24px}
 .sheet{max-width:860px;min-height:520px;margin:0 auto;background:var(--panel);border-radius:6px;box-shadow:0 2px 14px rgba(20,40,60,.1);padding:28px}
@@ -247,6 +248,10 @@ const IC={
  red:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h6M7 14h3"/><rect x="13" y="12" width="5" height="4" fill="currentColor"/></svg>',
  nup:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>',
  hf:'<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 8h16M4 16h16"/></svg>',
+
+ exi:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="14" height="14" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m3 15 4-4 4 4 2-2 4 4"/><path d="M19 3v9m0 0-3-3m3 3 3-3"/></svg>',
+ blank:'<svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke-dasharray="3 2"/><path d="m9.5 12.5 5 5m0-5-5 5"/></svg>',
+ scan:'<svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3.2"/></svg>',
  img:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="m21 16-5-5-9 9"/></svg>'};
 let dl=null;
 try{ if(window.claude&&claude.use) claude.use("downloads").then(d=>{dl=d}).catch(()=>{}) }catch(e){}
@@ -274,6 +279,10 @@ const TOOLS={
  red:{g:"Organisasi",title:"Sensor",desc:"Gambar kotak hitam di atas bagian rahasia pada pratinjau. Halaman yang disensor dijadikan gambar sehingga teks di bawahnya benar-benar hilang. Klik berkas untuk memilih PDF.",multi:false},
  nup:{g:"Organisasi",title:"Banyak per Lembar",desc:"Susun beberapa halaman dalam satu lembar (2, 4, 6, atau 9). Berguna untuk mencetak hemat kertas. Klik berkas untuk memilih PDF.",multi:false},
  hf:{g:"Organisasi",title:"Header & Footer",desc:"Tambahkan teks di bagian atas dan bawah setiap halaman. Klik berkas untuk memilih PDF yang diproses.",multi:false},
+
+ blank:{g:"Organisasi",title:"Hapus Halaman Kosong",desc:"Deteksi dan hapus halaman kosong otomatis, dengan pratinjau yang bisa disesuaikan. Klik berkas untuk memilih PDF.",multi:false},
+ scan:{g:"Konversi",title:"Pindai (Kamera)",desc:"Foto dokumen dengan kamera atau pilih dari galeri, rapikan, lalu jadikan PDF. Urutan mengikuti daftar berkas.",multi:true},
+ exi:{g:"Konversi",title:"Ekstrak Gambar",desc:"Ambil gambar yang tertanam di PDF menjadi berkas JPG atau PNG. Klik berkas untuk memilih PDF.",multi:false},
  p2w:{g:"Konversi",title:"PDF ke Word",desc:"Ubah PDF menjadi dokumen Word (.docx) berisi teks dan paragraf. PDF hasil pindai (berupa gambar) tidak berisi teks, jadi belum bisa dikonversi tanpa OCR.",multi:false},
  w2p:{g:"Konversi",title:"Word ke PDF",desc:"Ubah satu atau beberapa berkas Word (.docx) menjadi PDF. Teks, judul, daftar, tabel sederhana, dan gambar ikut terbawa.",multi:true},
  img:{g:"Konversi",title:"PDF ke Gambar",desc:"Ubah halaman PDF menjadi gambar PNG atau JPG. Pilih halaman lewat pratinjau, atau biarkan kosong untuk semua halaman.",multi:false}};
@@ -292,14 +301,14 @@ function drawList(){
   $("#noTool").hidden=n>0;
 }
 $("#q").oninput=drawList;
-function clearAll(){rdFile=null;rdR={};rdSel=-1;cpFile=null;sgFile=null;sgPos=null;sgOv=null;rotFile=null;rotD=[];rotX=new Set();files=[];mpages=[];sel=0;results=[];selFile=null;sPick=new Set();cur=0;mcur=0;tileEls=[];try{thumbs.clear()}catch(e){}const rs=$("#res");if(rs)rs.hidden=true;setSt("")}
+function clearAll(){blFile=null;blInk=null;blX=new Set();rdFile=null;rdR={};rdSel=-1;cpFile=null;sgFile=null;sgPos=null;sgOv=null;rotFile=null;rotD=[];rotX=new Set();files=[];mpages=[];sel=0;results=[];selFile=null;sPick=new Set();cur=0;mcur=0;tileEls=[];try{thumbs.clear()}catch(e){}const rs=$("#res");if(rs)rs.hidden=true;setSt("")}
 $("#back").onclick=()=>{clearAll();tool=null;setAccept("pdf");$("#toolView").hidden=true;$("#listView").hidden=false;drawFiles()};
 
 function setAccept(n){
   $("#fi").accept=n==="docx"?".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document":n==="img"?"image/png,image/jpeg,.png,.jpg,.jpeg":"application/pdf,.pdf";
   const h=document.querySelector(".hint"); if(h) h.textContent=n==="docx"?"Seret berkas Word (.docx) ke sini atau klik tombol di atas":n==="img"?"Seret gambar PNG atau JPG ke sini atau klik tombol di atas":"Seret berkas PDF ke sini atau klik tombol di atas";
 }
-const needOf=k=>k==="w2p"?"docx":k==="i2p"?"img":"pdf";
+const needOf=k=>k==="w2p"?"docx":(k==="i2p"||k==="scan")?"img":"pdf";
 function openTool(k){
   if(tool&&tool!==k) clearAll();
   tool=k; const t=TOOLS[k];
@@ -351,6 +360,15 @@ function openTool(k){
   if(k==="red") o.innerHTML='<label for="rdDpi">Kualitas halaman yang disensor</label><select id="rdDpi"><option value="100">Hemat (100 dpi, berkas kecil)</option><option value="150" selected>Sedang (150 dpi)</option><option value="200">Tinggi (200 dpi, berkas besar)</option></select><p class="note" style="margin-top:12px">Hanya halaman yang punya kotak sensor yang dijadikan gambar (teksnya tidak bisa dicari lagi). Halaman lain tidak berubah. Berkas hasil juga tidak membawa metadata asli.</p><button class="btn pri full" id="go" style="margin-top:12px">Terapkan sensor</button>';
   if(k==="nup") o.innerHTML='<label for="nuN">Halaman per lembar</label><select id="nuN"><option value="2">2</option><option value="4" selected>4</option><option value="6">6</option><option value="9">9</option></select><div class="wmrow"><div><label for="nuOri">Orientasi lembar</label><select id="nuOri"><option value="auto">Otomatis</option><option value="port">Tegak</option><option value="land">Mendatar</option></select></div><div><label for="nuMar">Margin</label><select id="nuMar"><option value="0">Tanpa</option><option value="18" selected>Kecil</option><option value="36">Sedang</option></select></div></div><label for="nuSz">Ukuran lembar</label><select id="nuSz"><option value="a4">A4</option><option value="first">Ikuti ukuran halaman pertama</option></select><label class="chk"><input type="checkbox" id="nuBd" checked> Garis tepi di setiap halaman</label><button class="btn pri full" id="go" style="margin-top:12px">Susun halaman</button>';
   if(k==="hf") o.innerHTML='<p class="note">Isi kolom yang diperlukan, sisanya kosongkan. Kode yang bisa dipakai: {n} nomor halaman, {total} jumlah halaman, {tanggal}, dan {nama} (nama berkas).</p><label for="hfH0">Header</label><div class="hf3"><input type="text" id="hfH0" placeholder="Kiri" aria-label="Header kiri" maxlength="120"><input type="text" id="hfH1" placeholder="Tengah" aria-label="Header tengah" maxlength="120"><input type="text" id="hfH2" placeholder="Kanan" aria-label="Header kanan" maxlength="120"></div><label for="hfF0">Footer</label><div class="hf3"><input type="text" id="hfF0" placeholder="Kiri" aria-label="Footer kiri" maxlength="120"><input type="text" id="hfF1" placeholder="Tengah" aria-label="Footer tengah" maxlength="120"><input type="text" id="hfF2" placeholder="Kanan" aria-label="Footer kanan" maxlength="120"></div><div class="wmrow"><div><label for="hfSize">Ukuran (pt)</label><input type="number" id="hfSize" value="10" min="6" max="36"></div><div><label for="hfCol">Warna</label><input type="color" id="hfCol" value="#555555"></div></div><label for="hfMar">Jarak dari tepi</label><select id="hfMar"><option value="20">Dekat</option><option value="32" selected>Sedang</option><option value="48">Jauh</option></select><label for="hfPages">Halaman (kosong = semua)</label><input type="text" id="hfPages" placeholder="2-10"><label class="chk"><input type="checkbox" id="hfSkip"> Lewati halaman pertama</label><button class="btn pri full" id="go" style="margin-top:12px">Tambahkan teks</button>';
+  if(k==="exi") o.innerHTML='<label class="chk"><input type="checkbox" id="exMin" checked> Abaikan gambar kecil (ikon, garis, di bawah 64 px)</label><p class="note">JPEG diambil apa adanya tanpa mengubah kualitas. Gambar lain disimpan sebagai PNG. Jika hasilnya lebih dari satu, tersedia tombol Simpan ZIP. Gambar berformat khusus dilewati.</p><button class="btn pri full" id="go" style="margin-top:12px">Ekstrak gambar</button>';
+  if(k==="blank"){
+    o.innerHTML='<label for="blS">Kepekaan deteksi</label><select id="blS"><option value="0">Ketat (hanya yang putih bersih)</option><option value="1" selected>Sedang (abaikan nomor halaman kecil)</option><option value="2">Longgar (abaikan juga bintik hasil pindai)</option></select><p class="note">Halaman terdeteksi langsung ditandai ✕ di area kerja. Klik halaman untuk menambah atau membatalkan tanda.</p><button class="btn pri full" id="go" style="margin-top:12px">Hapus halaman bertanda</button>';
+    $("#blS").onchange=()=>{if(blInk){blApply();if(blUpd)blUpd()}};
+  }
+  if(k==="scan"){
+    o.innerHTML='<button class="btn pri full" id="scCam" type="button">📷 Ambil foto dengan kamera</button><input type="file" id="scIn" accept="image/*" capture="environment" hidden><p class="note">Di ponsel tombol ini membuka kamera. Di komputer, pakai tombol Tambah untuk memilih gambar. Ambil foto satu per satu, lalu atur urutannya di daftar berkas.</p><label for="scF">Perapian</label><select id="scF"><option value="doc" selected>Dokumen (abu-abu, kontras ditingkatkan)</option><option value="orig">Warna asli</option><option value="bw">Hitam-putih</option></select><div class="wmrow"><div><label for="scSz">Ukuran halaman</label><select id="scSz"><option value="a4p">A4 tegak</option><option value="a4l">A4 mendatar</option><option value="img">Ikuti foto</option></select></div><div><label for="scMar">Margin</label><select id="scMar"><option value="0" selected>Tanpa</option><option value="18">Kecil</option><option value="36">Sedang</option></select></div></div><button class="btn pri full" id="go" style="margin-top:12px">Buat PDF</button>';
+    $("#scCam").onclick=()=>$("#scIn").click(); $("#scIn").onchange=e=>{addFiles([...e.target.files]);e.target.value=""};
+  }
   if(k==="p2w") o.innerHTML='<p class="note">Hasilnya berupa teks dan paragraf. Gambar, tabel, dan tata letak kolom tidak ikut terbawa.</p><button class="btn pri full" id="go">Ubah ke Word</button>';
   if(k==="w2p") o.innerHTML='<p class="note">Hanya format .docx (bukan .doc lama). Font diganti dengan font standar PDF; header, footer, dan kotak teks tidak ikut. Beberapa berkas bisa diubah sekaligus.</p><button class="btn pri full" id="go">Ubah ke PDF</button>';
   if(k==="img"){
@@ -520,6 +538,7 @@ function drawSel(){
   if(tool==="sign"&&f&&f.kind!=="docx"){drawSign(f);return}
   if(tool==="crop"&&f&&f.kind!=="docx"){drawCrop(f);return}
   if(tool==="red"&&f&&f.kind!=="docx"){drawRed(f);return}
+  if(tool==="blank"&&f&&f.kind!=="docx"){drawBlank(f);return}
   if((tool!=="split"&&tool!=="img")||!f||f.kind==="docx"){box.hidden=true;box.innerHTML="";return}
   if(selFile!==f){selFile=f;sPick=new Set();cur=0;const r=$("#ranges");if(r)r.value=""}
   box.hidden=false; tileEls=[];
@@ -739,10 +758,92 @@ function drawRed(f){
   $("#rdClr").onclick=()=>{rdR[rdPg]=[];rdSel=-1;if(rdPaint)rdPaint()};
   show();
 }
+/* orientasi EXIF, pindai, deteksi kosong, ekstrak gambar */
+function jpgOri(b){
+  if(b[0]!==0xFF||b[1]!==0xD8) return 1; let i=2;
+  while(i+9<b.length&&b[i]===0xFF){
+    const mk=b[i+1], len=(b[i+2]<<8)|b[i+3];
+    if(mk===0xE1&&b[i+4]===0x45&&b[i+5]===0x78&&b[i+6]===0x69&&b[i+7]===0x66){
+      const t=i+10, le=b[t]===0x49, g16=o=>le?(b[t+o]|(b[t+o+1]<<8)):((b[t+o]<<8)|b[t+o+1]), g32=o=>le?(b[t+o]|(b[t+o+1]<<8)|(b[t+o+2]<<16)|(b[t+o+3]<<24)):((b[t+o]<<24)|(b[t+o+1]<<16)|(b[t+o+2]<<8)|b[t+o+3]);
+      const ifd=g32(4), n=g16(ifd); for(let e=0;e<n;e++){const o=ifd+2+e*12; if(g16(o)===0x0112) return g16(o+8)} return 1;
+    }
+    if(mk===0xDA) break; i+=2+len;
+  }
+  return 1;
+}
+async function bmpOf(g){const bl=new Blob([g.bytes],{type:g.png?"image/png":"image/jpeg"}); try{return await createImageBitmap(bl,{imageOrientation:"from-image"})}catch(e){return await createImageBitmap(bl)}}
+async function normImg(g){
+  if(g.png||jpgOri(g.bytes)<=1) return g;
+  const bmp=await bmpOf(g), c=document.createElement("canvas"); c.width=bmp.width; c.height=bmp.height; c.getContext("2d").drawImage(bmp,0,0); if(bmp.close) bmp.close();
+  const bl=await new Promise(r=>c.toBlob(r,"image/jpeg",.92)); c.width=c.height=0; return {png:false,bytes:new Uint8Array(await bl.arrayBuffer())};
+}
+async function scanImg(g,mode,maxd){
+  const bmp=await bmpOf(g), sc=Math.min(1,maxd/Math.max(bmp.width,bmp.height)), w=Math.max(1,Math.round(bmp.width*sc)), h=Math.max(1,Math.round(bmp.height*sc));
+  const c=document.createElement("canvas"); c.width=w; c.height=h; const x=c.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,w,h); x.imageSmoothingQuality="high"; x.drawImage(bmp,0,0,w,h); if(bmp.close) bmp.close();
+  let png=false;
+  if(mode!=="orig"){
+    const id=x.getImageData(0,0,w,h), d=id.data, gr=new Uint8Array(w*h);
+    for(let i=0,j=0;i<d.length;i+=4,j++) gr[j]=(d[i]*299+d[i+1]*587+d[i+2]*114)/1000;
+    if(mode==="doc"){
+      const hist=new Uint32Array(256); for(let j=0;j<gr.length;j++) hist[gr[j]]++;
+      let a=0,lo=0,hi=255,tot=gr.length; for(let v=0;v<256;v++){a+=hist[v]; if(a>=tot*.01){lo=v;break}} a=0; for(let v=255;v>=0;v--){a+=hist[v]; if(a>=tot*.02){hi=v;break}}
+      if(hi-lo<20){lo=0;hi=255}
+      for(let i=0,j=0;i<d.length;i+=4,j++){const v=Math.max(0,Math.min(255,(gr[j]-lo)*255/(hi-lo))); d[i]=d[i+1]=d[i+2]=v}
+    }else{
+      const W1=w+1, I=new Float64Array(W1*(h+1));
+      for(let y=0;y<h;y++){let r=0; for(let xx=0;xx<w;xx++){r+=gr[y*w+xx]; I[(y+1)*W1+xx+1]=I[y*W1+xx+1]+r}}
+      const rad=Math.max(8,Math.round(Math.min(w,h)/24));
+      for(let y=0;y<h;y++){const y0=Math.max(0,y-rad),y1=Math.min(h,y+rad+1); for(let xx=0;xx<w;xx++){const x0=Math.max(0,xx-rad),x1=Math.min(w,xx+rad+1), m=(I[y1*W1+x1]-I[y0*W1+x1]-I[y1*W1+x0]+I[y0*W1+x0])/((x1-x0)*(y1-y0)), v=gr[y*w+xx]<m*.9?0:255, i=(y*w+xx)*4; d[i]=d[i+1]=d[i+2]=v}}
+      png=true;
+    }
+    x.putImageData(id,0,0);
+  }
+  const bl=await new Promise(r=>c.toBlob(r,png?"image/png":"image/jpeg",.82)); c.width=c.height=0;
+  return {png,bytes:new Uint8Array(await bl.arrayBuffer()),w,h};
+}
+let blFile=null, blInk=null, blX=new Set(), blUpd=null;
+const BLT=[0.00001,0.0002,0.003];
+function blApply(){const t=BLT[Number($("#blS").value)||0]; blX=new Set(); blInk.forEach((r,i)=>{if(r<t) blX.add(i)})}
+async function blAnalyze(f){
+  if(!f.pdfP) f.pdfP=pdfjsLib.getDocument({data:f.bytes.slice()}).promise;
+  const pdf=await f.pdfP, ink=[];
+  for(let i=1;i<=pdf.numPages;i++){
+    setSt("Memeriksa halaman "+i+" dari "+pdf.numPages+"…");
+    const pg=await pdf.getPage(i), v1=pg.getViewport({scale:1}), vp=pg.getViewport({scale:200/v1.width}), c=document.createElement("canvas"); c.width=Math.ceil(vp.width); c.height=Math.ceil(vp.height);
+    const x=c.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,c.width,c.height); await pg.render({canvasContext:x,viewport:vp}).promise;
+    const d=x.getImageData(0,0,c.width,c.height).data; let n=0; for(let j=0;j<d.length;j+=4) if((d[j]+d[j+1]+d[j+2])/3<200) n++;
+    ink.push(n/(c.width*c.height)); pg.cleanup(); c.width=c.height=0;
+  }
+  setSt(""); blInk=ink;
+}
+function drawBlank(f){
+  const box=$("#selBox"); box.hidden=false;
+  if(blFile!==f){blFile=f;blInk=null;blX=new Set()}
+  box.innerHTML='<div class="sh"><div><b>'+f.pages+' halaman</b><span class="badge"></span></div></div><div class="pgwrap" id="pgw"></div><p class="note">Halaman bertanda ✕ akan dihapus. Klik sebuah halaman untuk menandai atau membatalkan tandanya.</p>';
+  const els=[], upd=blUpd=()=>{
+    els.forEach((e,i)=>e.classList.toggle("del",blX.has(i)));
+    const bd=box.querySelector(".badge"); if(bd) bd.textContent=blX.size+" halaman kosong ditandai";
+  };
+  const build=()=>{
+    const g=document.createElement("div"); g.className="pgs";
+    for(let i=0;i<f.pages;i++){
+      const key=f.id+":"+i, u=thumbs.get(key), t=document.createElement("div"); t.className="pg rt bk"; t.tabIndex=0; t.setAttribute("role","button");
+      const th=document.createElement("div"); th.className="pgi";
+      if(u){const im=document.createElement("img");im.src=u;im.alt="";th.append(im)} else{th.textContent="…";jobs.set(th,{th,p:{f,i},key});io.observe(th)}
+      const n=document.createElement("div"); n.className="n"; n.textContent=i+1; const ck=document.createElement("div"); ck.className="ck"; ck.textContent="✕";
+      t.append(th,n,ck);
+      const tg=()=>{blX.has(i)?blX.delete(i):blX.add(i);upd()}; t.onclick=tg; t.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();tg()}};
+      g.append(t); els.push(t);
+    }
+    $("#pgw").textContent=""; $("#pgw").append(g); upd();
+  };
+  if(blInk) build();
+  else{ $("#pgw").textContent="Memeriksa halaman…"; blAnalyze(f).then(()=>{if(blFile!==f) return; blApply(); build()}).catch(e=>setSt(e&&e.message||String(e),"err")) }
+}
 function drawFiles(){
   const has=files.length>0; $("#drop").hidden=has; $("#filesBox").hidden=!has;
   if(sel>=files.length) sel=Math.max(0,files.length-1);
-  const single=tool&&!TOOLS[tool].multi, isMerge=tool==="merge", reord=isMerge||tool==="i2p", box=$("#cards"); box.innerHTML="";
+  const single=tool&&!TOOLS[tool].multi, isMerge=tool==="merge", reord=isMerge||tool==="i2p"||tool==="scan", box=$("#cards"); box.innerHTML="";
   const prev=isMerge&&mergePreview;
   $("#fh").textContent=files.length+" berkas"+(prev?" · "+mpages.length+" halaman":"");
   $("#reset").hidden=!prev;
@@ -1179,7 +1280,7 @@ async function compressKeep(f,q,sc,label){
 async function run(k){
   const go=$("#go"); $("#res").hidden=true;
   try{
-    if(!files.length) throw new Error(k==="i2p"?"Tambahkan gambar terlebih dahulu.":"Tambahkan berkas PDF terlebih dahulu.");
+    if(!files.length) throw new Error((k==="i2p"||k==="scan")?"Tambahkan gambar terlebih dahulu.":"Tambahkan berkas PDF terlebih dahulu.");
     go.disabled=true; const f=files[sel]||files[0];
     if(k==="merge"){
       const list=mergePreview?mpages:files.flatMap(f=>Array.from({length:f.pages},(_,i)=>({f,i})));
@@ -1222,7 +1323,7 @@ async function run(k){
       const m=Number($("#ipMar").value)||0, sz=$("#ipSize").value, doc=await PDFLib.PDFDocument.create();
       setSt("Membuat PDF…");
       for(const g of files){
-        const im=g.png?await doc.embedPng(g.bytes):await doc.embedJpg(g.bytes);
+        const g2=await normImg(g), im=g2.png?await doc.embedPng(g2.bytes):await doc.embedJpg(g2.bytes);
         let W,H; if(sz==="img"){W=im.width*.75+2*m;H=im.height*.75+2*m}else{[W,H]=sz==="a4l"?[841.89,595.28]:[595.28,841.89]}
         const pg=doc.addPage([W,H]), sc=Math.min((W-2*m)/im.width,(H-2*m)/im.height), w=im.width*sc, h=im.height*sc;
         pg.drawImage(im,{x:(W-w)/2,y:(H-h)/2,width:w,height:h});
@@ -1350,6 +1451,59 @@ async function run(k){
         });
       }
       showRes([{name:base(f.name)+"-hf.pdf",bytes:await doc.save()}]); setSt("Selesai: teks ditambahkan di "+idx.length+" halaman.");
+    }
+    if(k==="scan"){
+      const mode=$("#scF").value, sz=$("#scSz").value, m=Number($("#scMar").value)||0, doc=await PDFLib.PDFDocument.create();
+      for(let i=0;i<files.length;i++){
+        setSt("Memproses foto "+(i+1)+" dari "+files.length+"…");
+        const r=await scanImg(files[i],mode,2200), im=r.png?await doc.embedPng(r.bytes):await doc.embedJpg(r.bytes);
+        let W,H; if(sz==="img"){W=r.w*.4+2*m;H=r.h*.4+2*m}else{[W,H]=sz==="a4l"?[841.89,595.28]:[595.28,841.89]}
+        const pg=doc.addPage([W,H]), s2=Math.min((W-2*m)/r.w,(H-2*m)/r.h), w=r.w*s2, h=r.h*s2;
+        if(mode!=="orig"){pg.drawRectangle({x:0,y:0,width:W,height:H,color:PDFLib.rgb(1,1,1)})}
+        pg.drawImage(im,{x:(W-w)/2,y:(H-h)/2,width:w,height:h});
+      }
+      showRes([{name:"pindai.pdf",bytes:await doc.save()}]); setSt("Selesai: "+files.length+" halaman.");
+    }
+    if(k==="blank"){
+      if(blFile!==f||!blInk) throw new Error("Tunggu sampai pemeriksaan halaman selesai.");
+      if(!blX.size) throw new Error("Tidak ada halaman yang ditandai untuk dihapus.");
+      if(blX.size>=f.pages) throw new Error("Semua halaman ditandai. Sisakan minimal satu halaman.");
+      setSt("Memproses…");
+      const doc=await PDFLib.PDFDocument.load(f.bytes,{ignoreEncryption:true}); [...blX].sort((a,b)=>b-a).forEach(i=>doc.removePage(i));
+      showRes([{name:base(f.name)+"-tanpa-kosong.pdf",bytes:await doc.save()}]); setSt("Selesai: "+blX.size+" halaman dihapus, tersisa "+(f.pages-blX.size)+".");
+    }
+    if(k==="exi"){
+      const P=PDFLib, N=x=>P.PDFName.of(x), nm=o=>o&&o.toString(), num=o=>o&&o.asNumber?o.asNumber():0, minpx=$("#exMin").checked?64:1;
+      const doc=await P.PDFDocument.load(f.bytes,{ignoreEncryption:true}), ctx=doc.context, all=ctx.enumerateIndirectObjects(), skip=new Set(), out=[]; let skipped=0, seen=0;
+      const isImg=o=>o instanceof P.PDFRawStream&&nm(o.dict.get(N("Subtype")))==="/Image";
+      for(const [,o] of all){ if(isImg(o)) for(const key of ["SMask","Mask"]){const v=o.dict.get(N(key)); if(v instanceof P.PDFRef) skip.add(v.toString())} }
+      const pad=n=>String(n).padStart(3,"0"), unPng=(d,w,n)=>{const rb=w*n,h=Math.floor(d.length/(rb+1)),o=new Uint8Array(h*rb);for(let y=0;y<h;y++){const ft=d[y*(rb+1)];for(let x=0;x<rb;x++){const v=d[y*(rb+1)+1+x],a=x>=n?o[y*rb+x-n]:0,b=y?o[(y-1)*rb+x]:0,c=(x>=n&&y)?o[(y-1)*rb+x-n]:0;let r;if(ft===0)r=v;else if(ft===1)r=v+a;else if(ft===2)r=v+b;else if(ft===3)r=v+((a+b)>>1);else{const p=a+b-c,pa=Math.abs(p-a),pb=Math.abs(p-b),pc=Math.abs(p-c);r=v+(pa<=pb&&pa<=pc?a:pb<=pc?b:c)}o[y*rb+x]=r&255}}return o};
+      for(const [ref,o] of all){
+        if(!isImg(o)||skip.has(ref.toString())) continue; const d=o.dict, w=num(d.get(N("Width"))), h=num(d.get(N("Height")));
+        if(!w||!h||nm(d.get(N("ImageMask")))==="true"||w<minpx||h<minpx) continue; seen++; setSt("Membaca gambar "+seen+"…");
+        let fl=d.get(N("Filter")); const fs=fl instanceof P.PDFArray?fl.asArray().map(nm):fl?[nm(fl)]:[];
+        if(fs.length===1&&fs[0]==="/DCTDecode"){out.push({name:"gambar-"+pad(out.length+1)+".jpg",bytes:o.contents});continue}
+        if(fs.length===1&&fs[0]==="/FlateDecode"&&num(d.get(N("BitsPerComponent")))===8){
+          let cs=d.get(N("ColorSpace")); if(cs instanceof P.PDFRef) cs=ctx.lookup(cs); let n=0;
+          if(nm(cs)==="/DeviceRGB"||nm(cs)==="/CalRGB") n=3; else if(nm(cs)==="/DeviceGray"||nm(cs)==="/CalGray") n=1;
+          else if(cs instanceof P.PDFArray&&nm(cs.get(0))==="/ICCBased"){const ic=ctx.lookup(cs.get(1)), nv=num(ic&&ic.dict&&ic.dict.get(N("N"))); if(nv===3||nv===1) n=nv}
+          let dp=d.get(N("DecodeParms")); if(dp instanceof P.PDFArray) dp=dp.size()?dp.lookup(0):null; if(dp instanceof P.PDFRef) dp=ctx.lookup(dp);
+          const pr=dp&&dp.get?num(dp.get(N("Predictor"))):0;
+          if(!n||(pr&&pr<10&&pr!==1)){skipped++;continue}
+          try{
+            let raw=new Uint8Array(await new Response(new Blob([o.contents]).stream().pipeThrough(new DecompressionStream("deflate"))).arrayBuffer());
+            if(pr>=10) raw=unPng(raw,w,n); if(raw.length<w*h*n){skipped++;continue}
+            const c=document.createElement("canvas"); c.width=w; c.height=h; const x=c.getContext("2d"), id=x.createImageData(w,h);
+            for(let i=0,j=0;i<w*h;i++,j+=4){const s0=i*n; id.data[j]=raw[s0]; id.data[j+1]=n===3?raw[s0+1]:raw[s0]; id.data[j+2]=n===3?raw[s0+2]:raw[s0]; id.data[j+3]=255}
+            x.putImageData(id,0,0); const bl=await new Promise(r=>c.toBlob(r,"image/png")); c.width=c.height=0;
+            out.push({name:"gambar-"+pad(out.length+1)+".png",bytes:new Uint8Array(await bl.arrayBuffer())});
+          }catch(e){skipped++}
+          continue;
+        }
+        skipped++;
+      }
+      if(!out.length) throw new Error(seen?"Gambar di PDF ini berformat khusus yang belum didukung ("+skipped+" gambar dilewati).":"Tidak ada gambar yang tertanam di PDF ini"+($("#exMin").checked?" (gambar kecil diabaikan).":"."));
+      showRes(out); setSt("Selesai: "+out.length+" gambar diambil"+(skipped?", "+skipped+" dilewati (format belum didukung).":"."));
     }
     if(k==="rot"){
       if(rotFile!==f) throw new Error("Pilih berkas lebih dulu.");
