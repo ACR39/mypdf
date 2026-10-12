@@ -308,7 +308,6 @@ const TOOLS={
  split:{g:"Organisasi",title:"Pisah",desc:"Klik halaman di pratinjau untuk memilihnya, atau ketik rentang halaman. Klik berkas untuk memilih PDF yang diproses.",multi:false},
  compress:{g:"Organisasi",title:"Kompres",desc:"Perkecil ukuran satu PDF. Klik berkas untuk memilihnya.",multi:false},
  wm:{g:"Organisasi",title:"Watermark",desc:"Tambahkan watermark teks atau gambar ke halaman PDF. Klik berkas untuk memilih PDF yang diproses.",multi:false},
- rot:{g:"Organisasi",title:"Putar & Hapus",desc:"Putar atau hapus halaman lewat thumbnail di area kerja, lalu terapkan. Klik berkas untuk memilih PDF yang diproses.",multi:false},
 
  num:{g:"Organisasi",title:"Nomor Halaman",desc:"Tambahkan nomor halaman ke PDF. Klik berkas untuk memilih PDF yang diproses.",multi:false},
  sign:{g:"Organisasi",title:"Tanda Tangan",desc:"Tempel tanda tangan (digambar atau gambar unggahan) ke halaman PDF. Klik berkas untuk memilih PDF.",multi:false},
@@ -324,7 +323,7 @@ const TOOLS={
  scan:{g:"Konversi",title:"Pindai (Kamera)",desc:"Foto dokumen dengan kamera atau pilih dari galeri, rapikan, lalu jadikan PDF. Urutan mengikuti daftar berkas.",multi:true},
  exi:{g:"Konversi",title:"Ekstrak Gambar",desc:"Ambil gambar yang tertanam di PDF menjadi berkas JPG atau PNG. Klik berkas untuk memilih PDF.",multi:false},
 
- order:{g:"Organisasi",title:"Atur Halaman",desc:"Ubah urutan halaman dengan menyeret thumbnail, gandakan, sisipkan halaman kosong, atau hapus. Klik berkas untuk memilih PDF.",multi:false},
+ order:{g:"Organisasi",title:"Atur Halaman (urut, putar, hapus)",desc:"Ubah urutan halaman dengan menyeret thumbnail, putar, gandakan, sisipkan halaman kosong, atau hapus. Klik berkas untuk memilih PDF.",multi:false},
  resz:{g:"Organisasi",title:"Ubah Ukuran Halaman",desc:"Samakan semua halaman ke ukuran kertas tertentu (A4, A3, Letter, dan lainnya). Klik berkas untuk memilih PDF.",multi:false},
  form:{g:"Organisasi",title:"Isi Formulir",desc:"Isi kolom formulir PDF langsung di sini. Klik berkas untuk memilih PDF.",multi:false},
  info:{g:"Organisasi",title:"Info & Cari Teks",desc:"Lihat ringkasan isi PDF (halaman, ukuran, metadata, gambar, anotasi) dan cari kata di seluruh halaman. Klik berkas untuk memilih PDF.",multi:false},
@@ -345,7 +344,7 @@ function drawList(){
   const q=$("#q").value.trim().toLowerCase(), box=$("#tools"); box.innerHTML=""; let n=0, lg=null;
   $("#bOrg").classList.toggle("on",grpSel==="Organisasi"); $("#bConv").classList.toggle("on",grpSel==="Konversi"); $("#bOrg").setAttribute("aria-pressed",grpSel==="Organisasi"); $("#bConv").setAttribute("aria-pressed",grpSel==="Konversi");
   const ents=Object.entries(TOOLS), gs=[...new Set(ents.map(([,t])=>t.g))];
-  const SUBS=[["Susun halaman",["merge","split","order","rot","blank","resz","crop","nup"]],["Tambah ke halaman",["wm","num","hf","sign","addt","form"]],["Perbaiki tampilan",["compress","bw","tidy"]],["Periksa & bersihkan",["info","cmp","meta","cln","red"]]], SUBOF={}, SUBN=[]; SUBS.forEach(([s,l])=>l.forEach(k=>{SUBOF[k]=s;SUBN.push(k)}));
+  const SUBS=[["Susun halaman",["merge","split","order","blank","resz","crop","nup"]],["Tambah ke halaman",["wm","num","hf","sign","addt","form"]],["Perbaiki tampilan",["compress","bw","tidy"]],["Periksa & bersihkan",["info","cmp","meta","cln","red"]]], SUBOF={}, SUBN=[]; SUBS.forEach(([s,l])=>l.forEach(k=>{SUBOF[k]=s;SUBN.push(k)}));
   const so=k=>{const i=SUBN.indexOf(k);return i<0?999:i};
   ents.sort((a,b)=>(gs.indexOf(a[1].g)-gs.indexOf(b[1].g))||(a[1].g==="Organisasi"?so(a[0])-so(b[0]):0));
   let lastSub=null;
@@ -399,7 +398,6 @@ function openTool(k){
     const fg=()=>{const c=$("#wmFont").value==="custom";$("#wmFf").hidden=!c;$("#wmBold").disabled=c;$("#wmItalic").disabled=c};$("#wmFont").onchange=fg; $("#wmType").onchange=tg; $("#wmOp").oninput=()=>{$("#wmOpV").textContent=$("#wmOp").value};
     $("#wmPrev").onclick=wmPreview;
   }
-  if(k==="rot") o.innerHTML='<p class="note">Putar halaman dengan tombol ↶ ↷ di bawah thumbnail, atau tandai ✕ untuk menghapusnya. Perubahan baru dipakai setelah tombol di bawah ditekan.</p><button class="btn pri full" id="go" style="margin-top:12px">Terapkan perubahan</button>';
   if(k==="i2p") o.innerHTML='<label for="ipSize">Ukuran halaman</label><select id="ipSize"><option value="a4p">A4 tegak</option><option value="a4l">A4 mendatar</option><option value="img">Ikuti ukuran gambar</option></select><label for="ipMar">Margin</label><select id="ipMar"><option value="0">Tanpa margin</option><option value="24" selected>Kecil</option><option value="48">Sedang</option></select><p class="note">Gambar PNG atau JPG. Urutan halaman mengikuti daftar berkas: geser berkas atau pakai tombol ↑↓.</p><button class="btn pri full" id="go" style="margin-top:12px">Buat PDF</button>';
   if(k==="num") o.innerHTML='<label for="pnFmt">Format</label><select id="pnFmt"><option value="n">1</option><option value="h">Halaman 1</option><option value="nt">1 / 10</option><option value="ht">Halaman 1 dari 10</option></select><div class="wmrow"><div><label for="pnPos">Posisi</label><select id="pnPos"><option value="bc">Bawah tengah</option><option value="br">Bawah kanan</option><option value="bl">Bawah kiri</option><option value="tc">Atas tengah</option><option value="tr">Atas kanan</option><option value="tl">Atas kiri</option></select></div><div><label for="pnSize">Ukuran (pt)</label><input type="number" id="pnSize" value="11" min="6" max="48"></div></div><div class="wmrow"><div><label for="pnStart">Mulai dari nomor</label><input type="number" id="pnStart" value="1" min="0"></div><div><label for="pnCol">Warna</label><input type="color" id="pnCol" value="#000000"></div></div><label for="pnPages">Halaman bernomor (kosong = semua)</label><input type="text" id="pnPages" placeholder="2-10"><button class="btn pri full" id="go" style="margin-top:12px">Tambahkan nomor</button>';
   if(k==="sign"){
@@ -427,7 +425,7 @@ function openTool(k){
     o.innerHTML='<button class="btn pri full" id="scCam" type="button">📷 Ambil foto dengan kamera</button><input type="file" id="scIn" accept="image/*" capture="environment" hidden><p class="note">Di ponsel tombol ini membuka kamera. Di komputer, pakai tombol Tambah untuk memilih gambar. Ambil foto satu per satu, lalu atur urutannya di daftar berkas.</p><label for="scF">Perapian</label><select id="scF"><option value="doc" selected>Dokumen (abu-abu, kontras ditingkatkan)</option><option value="orig">Warna asli</option><option value="bw">Hitam-putih</option></select><div class="wmrow"><div><label for="scSz">Ukuran halaman</label><select id="scSz"><option value="a4p">A4 tegak</option><option value="a4l">A4 mendatar</option><option value="img">Ikuti foto</option></select></div><div><label for="scMar">Margin</label><select id="scMar"><option value="0" selected>Tanpa</option><option value="18">Kecil</option><option value="36">Sedang</option></select></div></div><button class="btn pri full" id="go" style="margin-top:12px">Buat PDF</button>';
     $("#scCam").onclick=()=>$("#scIn").click(); $("#scIn").onchange=e=>{addFiles([...e.target.files]);e.target.value=""};
   }
-  if(k==="order") o.innerHTML='<p class="note">Atur halaman di area kerja: seret thumbnail untuk memindahkan, atau pakai tombol di bawahnya. Perubahan baru dipakai setelah tombol di bawah ditekan.</p><button class="btn pri full" id="go" style="margin-top:12px">Terapkan urutan</button>';
+  if(k==="order") o.innerHTML='<p class="note">Atur halaman di area kerja: seret thumbnail untuk memindahkan, putar dengan ↶ ↷, atau pakai tombol lain di bawahnya. Perubahan baru dipakai setelah tombol di bawah ditekan.</p><button class="btn pri full" id="go" style="margin-top:12px">Terapkan urutan</button>';
   if(k==="resz") o.innerHTML='<label for="rzSz">Ukuran kertas</label><select id="rzSz"><option value="a4" selected>A4</option><option value="a3">A3</option><option value="a5">A5</option><option value="letter">Letter</option><option value="legal">Legal</option></select><div class="wmrow"><div><label for="rzOri">Orientasi</label><select id="rzOri"><option value="auto">Ikuti tiap halaman</option><option value="port">Tegak</option><option value="land">Mendatar</option></select></div><div><label for="rzMar">Margin</label><select id="rzMar"><option value="0">Tanpa</option><option value="18" selected>Kecil</option><option value="36">Sedang</option></select></div></div><label for="rzMode">Cara menyesuaikan</label><select id="rzMode"><option value="fit" selected>Muat utuh (bisa ada ruang kosong)</option><option value="fill">Penuh (tepi bisa terpotong)</option></select><p class="note">Isi halaman tetap berupa vektor dan teks, tidak diubah jadi gambar. Margin hanya dipakai pada cara "Muat utuh".</p><button class="btn pri full" id="go" style="margin-top:12px">Ubah ukuran</button>';
   if(k==="form") o.innerHTML='<label class="chk"><input type="checkbox" id="frmFlat"> Ratakan setelah diisi (kolom tidak bisa diubah lagi)</label><p class="note">Kolom formulir muncul di area kerja. Hanya kolom yang kamu ubah yang ditulis ulang. Huruf di luar Latin tidak didukung font bawaan PDF.</p><button class="btn pri full" id="go" style="margin-top:12px">Simpan formulir</button>';
   if(k==="p2w") o.innerHTML='<label class="chk"><input type="checkbox" id="p2Img" checked> Sertakan gambar</label><label class="chk"><input type="checkbox" id="p2Tbl" checked> Deteksi tabel</label><label class="chk"><input type="checkbox" id="p2Bd" checked> Beri garis pada tabel</label><p class="note">Teks, paragraf, tabel, dan gambar dibawa ke Word. Tabel dikenali dari kolom teks yang sejajar, jadi tabel dengan tata letak rumit atau teks berkolom koran bisa kurang tepat. PDF hasil pindai tetap butuh OCR.</p><button class="btn pri full" id="go">Ubah ke Word</button>';
@@ -606,7 +604,6 @@ function drawMergeSel(){
 function drawSel(){
   const box=$("#selBox"), f=files[sel];
   if(tool==="merge"&&mergePreview&&files.length){drawMergeSel();return}
-  if(tool==="rot"&&f&&f.kind!=="docx"){drawRot(f);return}
   if(tool==="sign"&&f&&f.kind!=="docx"){drawSign(f);return}
   if(tool==="addt"&&f&&f.kind!=="docx"){drawAddt(f);return}
   if(tool==="crop"&&f&&f.kind!=="docx"){drawCrop(f);return}
@@ -652,45 +649,6 @@ function drawSel(){
     show();
   }
   updateSel();
-}
-let rotFile=null, rotD=[], rotX=new Set();
-function drawRot(f){
-  const box=$("#selBox");
-  if(rotFile!==f){rotFile=f;rotD=new Array(f.pages).fill(0);rotX=new Set()}
-  box.hidden=false;
-  box.innerHTML='<div class="sh"><div><b>'+f.pages+' halaman</b><span class="badge"></span></div></div><div class="pgwrap" id="pgw"></div><div class="sf"><span>Semua:</span><button class="btn sm" data-a="l">↶ Putar kiri</button><button class="btn sm" data-a="r">↷ Putar kanan</button><button class="btn sm" data-a="x">Pulihkan</button></div>';
-  const els=[], upd=()=>{
-    els.forEach((e,i)=>{
-      const d=rotD[i]; e.th.style.transform=d?"rotate("+d+"deg)"+(d%180?" scale(.75)":""):"";
-      e.t.classList.toggle("del",rotX.has(i)); e.x.textContent=rotX.has(i)?"↺":"✕";
-      e.x.setAttribute("aria-label",(rotX.has(i)?"Pulihkan halaman ":"Hapus halaman ")+(i+1));
-    });
-    const bd=box.querySelector(".badge"); if(bd){const n=rotD.filter((d,i)=>d&&!rotX.has(i)).length; bd.textContent=rotX.size+" dihapus · "+n+" diputar"}
-  };
-  const turn=(i,dg)=>{rotD[i]=((rotD[i]+dg)%360+360)%360;upd()};
-  box.querySelectorAll(".sf [data-a]").forEach(b=>b.onclick=()=>{
-    const a=b.dataset.a;
-    if(a==="x"){rotD=new Array(f.pages).fill(0);rotX=new Set()}else rotD=rotD.map(d=>((d+(a==="r"?90:-90))%360+360)%360);
-    upd();
-  });
-  const g=document.createElement("div"); g.className="pgs";
-  zmCtxCur={n:()=>f.pages,get:k=>({f,i:k}),mark:k=>rotX.has(k),del:k=>{rotX.has(k)?rotX.delete(k):rotX.add(k);upd()},verb:["Hapus halaman ini","Pulihkan halaman ini"]};
-  for(let i=0;i<f.pages;i++){
-    const key=f.id+":"+i, u=thumbs.get(key), w=document.createElement("div"); w.className="rw";
-    const t=document.createElement("div"); t.className="pg rt";
-    const th=document.createElement("div"); th.className="pgi";
-    if(u){const im=document.createElement("img");im.src=u;im.alt="";th.append(im)}
-    else{th.textContent="…";jobs.set(th,{th,p:{f,i},key});io.observe(th)} zmTag(th,f,i);
-    const n=document.createElement("div"); n.className="n"; n.textContent=i+1;
-    const ck=document.createElement("div"); ck.className="ck"; ck.textContent="✕";
-    t.append(th,n,ck);
-    const tb=document.createElement("div"); tb.className="tb";
-    const mk=(txt,lab,fn)=>{const b=document.createElement("button");b.className="btn sm";b.textContent=txt;b.setAttribute("aria-label",lab+" halaman "+(i+1));b.onclick=fn;tb.append(b);return b};
-    mk("↶","Putar kiri",()=>turn(i,-90)); mk("↷","Putar kanan",()=>turn(i,90));
-    const x=mk("✕","Hapus",()=>{rotX.has(i)?rotX.delete(i):rotX.add(i);upd()});
-    w.append(t,tb); g.append(w); els.push({t,th,x});
-  }
-  $("#pgw").append(g); upd();
 }
 async function sgSetOv(){
   try{
@@ -925,11 +883,11 @@ function placeEmb(pg,e,a,x0,y0,sc){
 }
 function drawOrder(f){
   const box=$("#selBox"); box.hidden=false;
-  if(odFile!==f){odFile=f;odL=Array.from({length:f.pages},(_,i)=>({s:i,id:++odId}))}
-  box.innerHTML='<div class="sh"><div><b>Urutan halaman</b><span class="badge"></span></div></div><div class="pgwrap" id="pgw"></div><div class="sf"><button class="btn sm" id="odRev">Balik urutan</button><button class="btn sm" id="odRes">Pulihkan</button></div><p class="note">Seret halaman untuk memindahkannya, atau pakai ◀ ▶. ⧉ menggandakan, ＋ menyisipkan halaman kosong sesudahnya, ✕ menghapus.</p>';
+  if(odFile!==f){odFile=f;odL=Array.from({length:f.pages},(_,i)=>({s:i,id:++odId,r:0}))}
+  box.innerHTML='<div class="sh"><div><b>Urutan halaman</b><span class="badge"></span></div></div><div class="pgwrap" id="pgw"></div><div class="sf"><button class="btn sm" id="odRev">Balik urutan</button><button class="btn sm" id="odRL">↶ Putar semua</button><button class="btn sm" id="odRR">↷ Putar semua</button><button class="btn sm" id="odRes">Pulihkan</button></div><p class="note">Seret halaman untuk memindahkannya, atau pakai ◀ ▶. ↶ ↷ memutar, ⧉ menggandakan, ＋ menyisipkan halaman kosong sesudahnya, ✕ menghapus.</p>';
   const mv=(i,j)=>{if(i===j||j<0||j>=odL.length)return;const [x]=odL.splice(i,1);odL.splice(j,0,x);paint()};
   const paint=()=>{
-    const bd=box.querySelector(".badge"); if(bd) bd.textContent=odL.length+" halaman";
+    const bd=box.querySelector(".badge"); if(bd) {const nr=odL.filter(x=>x.r&&x.s>=0).length; bd.textContent=odL.length+" halaman"+(nr?" · "+nr+" diputar":"")}
     const g=document.createElement("div"); g.className="pgs";
     zmCtxCur={n:()=>odL.length,get:k=>({f,i:odL[k].s}),list:true,orig:true,del:k=>{if(odL.length>1){odL.splice(k,1);paint();return true}return false},verb:["Hapus halaman ini"]};
     odL.forEach((it,i)=>{
@@ -944,13 +902,16 @@ function drawOrder(f){
       const mk=(row,txt,lab,fn)=>{const b=document.createElement("button");b.className="btn sm";b.textContent=txt;b.setAttribute("aria-label",lab+" halaman "+(i+1));b.onclick=fn;row.append(b)};
       const r1=document.createElement("div"), r2=document.createElement("div"); r1.className=r2.className="tb";
       mk(r1,"◀","Geser ke kiri",()=>mv(i,i-1)); mk(r1,"▶","Geser ke kanan",()=>mv(i,i+1));
-      mk(r2,"⧉","Gandakan",()=>{odL.splice(i+1,0,{s:it.s,id:++odId});paint()}); mk(r2,"＋","Sisipkan halaman kosong setelah",()=>{odL.splice(i+1,0,{s:-1,id:++odId});paint()});
+      if(it.s>=0){const d=it.r||0; if(d) th.style.transform="rotate("+d+"deg)"+(d%180?" scale(.75)":"");
+        mk(r1,"↶","Putar kiri",()=>{it.r=((it.r||0)-90+360)%360;paint()}); mk(r1,"↷","Putar kanan",()=>{it.r=((it.r||0)+90)%360;paint()})}
+      mk(r2,"⧉","Gandakan",()=>{odL.splice(i+1,0,{s:it.s,id:++odId,r:it.r||0});paint()}); mk(r2,"＋","Sisipkan halaman kosong setelah",()=>{odL.splice(i+1,0,{s:-1,id:++odId,r:0});paint()});
       mk(r2,"✕","Hapus",()=>{if(odL.length>1){odL.splice(i,1);paint()}});
       w.append(r1,r2); g.append(w);
     });
     $("#pgw").textContent=""; $("#pgw").append(g);
   };
-  $("#odRev").onclick=()=>{odL.reverse();paint()}; $("#odRes").onclick=()=>{odL=Array.from({length:f.pages},(_,i)=>({s:i,id:++odId}));paint()};
+  $("#odRev").onclick=()=>{odL.reverse();paint()}; $("#odRes").onclick=()=>{odL=Array.from({length:f.pages},(_,i)=>({s:i,id:++odId,r:0}));paint()};
+  const rall=dg=>{odL.forEach(x=>{if(x.s>=0)x.r=((x.r||0)+dg+360)%360});paint()}; $("#odRL").onclick=()=>rall(-90); $("#odRR").onclick=()=>rall(90);
   paint();
 }
 async function drawForm(f){
@@ -2119,10 +2080,10 @@ async function run(k){
       const src=await PDFLib.PDFDocument.load(f.bytes,{ignoreEncryption:true}), out=await PDFLib.PDFDocument.create(), sz=odL.map(it=>it.s>=0?src.getPage(it.s).getSize():null);
       let first=sz.find(Boolean)||{width:595.28,height:841.89}, prev=null;
       for(let i=0;i<odL.length;i++){
-        if(odL[i].s>=0){const [cp]=await out.copyPages(src,[odL[i].s]); out.addPage(cp); prev=sz[i]}
+        if(odL[i].s>=0){const [cp]=await out.copyPages(src,[odL[i].s]); if(odL[i].r) cp.setRotation(PDFLib.degrees((((cp.getRotation().angle||0)+odL[i].r)%360+360)%360)); out.addPage(cp); prev=sz[i]}
         else{const z=prev||first; out.addPage([z.width,z.height])}
       }
-      showRes([{name:base(f.name)+"-atur.pdf",bytes:await out.save()}]); setSt("Selesai: "+odL.length+" halaman.");
+      showRes([{name:base(f.name)+"-atur.pdf",bytes:await out.save()}]); setSt("Selesai: "+odL.length+" halaman"+(odL.some(x=>x.r)?", "+odL.filter(x=>x.r&&x.s>=0).length+" diputar":"")+".");
     }
     if(k==="resz"){
       const SZ={a4:[595.28,841.89],a3:[841.89,1190.55],a5:[419.53,595.28],letter:[612,792],legal:[612,1008]}, [TW,TH]=SZ[$("#rzSz").value], ori=$("#rzOri").value, m=Number($("#rzMar").value)||0, fill=$("#rzMode").value==="fill";
@@ -2145,17 +2106,6 @@ async function run(k){
       if(!n&&!$("#frmFlat").checked) throw new Error("Belum ada kolom yang diubah.");
       try{form.updateFieldAppearances(font); if($("#frmFlat").checked) form.flatten()}catch(e){throw new Error("Teks berisi karakter yang tidak didukung font standar PDF (hanya huruf Latin).")}
       showRes([{name:base(f.name)+"-isi.pdf",bytes:await doc.save()}]); setSt("Selesai: "+n+" kolom diisi"+($("#frmFlat").checked?" dan formulir diratakan.":".")+(bad.length?" Gagal: "+bad.slice(0,3).join(", ")+".":""));
-    }
-    if(k==="rot"){
-      if(rotFile!==f) throw new Error("Pilih berkas lebih dulu.");
-      const nr=rotD.filter((d,i)=>d&&!rotX.has(i)).length;
-      if(!rotX.size&&!nr) throw new Error("Belum ada perubahan: putar atau hapus halaman terlebih dahulu.");
-      if(rotX.size>=f.pages) throw new Error("Semua halaman dihapus. Sisakan minimal satu halaman.");
-      setSt("Memproses…");
-      const doc=await PDFLib.PDFDocument.load(f.bytes,{ignoreEncryption:true});
-      doc.getPages().forEach((pg,i)=>{if(rotD[i]&&!rotX.has(i)) pg.setRotation(PDFLib.degrees((((pg.getRotation().angle||0)+rotD[i])%360+360)%360))});
-      [...rotX].sort((a,b)=>b-a).forEach(i=>doc.removePage(i));
-      showRes([{name:base(f.name)+"-diatur.pdf",bytes:await doc.save()}]); setSt("Selesai: "+(f.pages-rotX.size)+" halaman, "+nr+" diputar.");
     }
     if(k==="wm"){
       const o=wmOpts(), txt=$("#wmPages").value.trim();
