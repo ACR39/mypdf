@@ -191,7 +191,7 @@ body.bgmode .sheet{background:color-mix(in srgb,var(--panel) 86%,transparent);-w
 #cropM .cmh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:10px 14px}#cropM .cmh .meta{color:#b8d4d1}
 #cropM .cms{flex:1;min-height:0;display:grid;place-items:center;padding:0 8px;overflow:hidden}
 #cropM canvas{touch-action:none;display:block;border-radius:4px;max-width:100%}
-#cropM .cmb{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 14px;background:rgba(0,0,0,.35)}
+#cropM .cmr{display:flex;gap:6px;align-items:center;font-size:.85rem}#cropM .cmr select{width:auto;padding:5px 8px}#cropM .cmb{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 14px;background:rgba(0,0,0,.35)}
 .fth{width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:#fff;flex:none}
 
 .pvg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;align-items:end}
@@ -333,7 +333,7 @@ const TOOLS={
  hf:{g:"Organisasi",title:"Header & Footer",desc:"Tambahkan teks di bagian atas dan bawah setiap halaman. Klik berkas untuk memilih PDF yang diproses.",multi:false},
 
  blank:{g:"Organisasi",title:"Hapus Halaman Kosong",desc:"Deteksi dan hapus halaman kosong otomatis, dengan pratinjau yang bisa disesuaikan. Klik berkas untuk memilih PDF.",multi:false},
- scan:{g:"Konversi",title:"Pindai (Kamera)",desc:"Foto dokumen dengan kamera atau pilih dari galeri, potong bagian yang tidak perlu, rapikan, lalu jadikan PDF. Urutan mengikuti daftar berkas.",multi:true},
+ scan:{g:"Konversi",title:"Pindai (Kamera)",desc:"Foto dokumen dengan kamera atau pilih dari galeri, deteksi dan luruskan dokumen, rapikan, lalu jadikan PDF. Urutan mengikuti daftar berkas.",multi:true},
  exi:{g:"Konversi",title:"Ekstrak Gambar",desc:"Ambil gambar yang tertanam di PDF menjadi berkas JPG atau PNG. Klik berkas untuk memilih PDF.",multi:false},
 
  order:{g:"Organisasi",title:"Atur Halaman (urut, putar, hapus)",desc:"Ubah urutan halaman dengan menyeret thumbnail, putar, gandakan, sisipkan halaman kosong, atau hapus. Klik berkas untuk memilih PDF.",multi:false},
@@ -435,7 +435,8 @@ function openTool(k){
     $("#blS").onchange=()=>{if(blInk){blApply();if(blUpd)blUpd()}};
   }
   if(k==="scan"){
-    o.innerHTML='<button class="btn pri full" id="scCam" type="button">📷 Ambil foto dengan kamera</button><input type="file" id="scIn" accept="image/*" capture="environment" hidden><label class="chk" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="scAuto" checked> Buka editor potong setelah foto diambil</label><p class="note">Di ponsel tombol ini membuka kamera. Di komputer, pakai tombol Tambah untuk memilih gambar. Ambil foto satu per satu, lalu atur urutannya di daftar berkas. Tombol ✂ Potong di tiap foto membuang bagian yang tidak perlu dan bisa memutar foto.</p><label for="scF">Perapian</label><select id="scF"><option value="doc" selected>Dokumen (abu-abu, kontras ditingkatkan)</option><option value="orig">Warna asli</option><option value="bw">Hitam-putih</option></select><div class="wmrow"><div><label for="scSz">Ukuran halaman</label><select id="scSz"><option value="auto" selected>A4 otomatis (tegak/mendatar sesuai foto)</option><option value="a4p">A4 tegak</option><option value="a4l">A4 mendatar</option><option value="img">Ikuti foto</option></select></div><div><label for="scMar">Margin</label><select id="scMar"><option value="0" selected>Tanpa</option><option value="18">Kecil</option><option value="36">Sedang</option></select></div></div><label for="scFit">Penyesuaian foto ke kertas</label><select id="scFit"><option value="fit" selected>Muat utuh (bisa ada ruang kosong)</option><option value="fill">Isi penuh (tepi terpotong)</option><option value="stretch">Regangkan (bisa sedikit melar)</option></select><label class="chk" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="scTrim" checked> Buang sisa tepi kosong dan gelap di sekeliling dokumen</label><button class="btn pri full" id="go" style="margin-top:12px">Buat PDF</button>';
+    o.innerHTML='<button class="btn pri full" id="scCam" type="button">📷 Ambil foto dengan kamera</button><input type="file" id="scIn" accept="image/*" capture="environment" hidden><label class="chk" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="scAuto" checked> Buka editor potong/luruskan setelah foto diambil</label><p class="note">Di ponsel tombol ini membuka kamera. Di komputer, pakai tombol Tambah untuk memilih gambar. Ambil foto satu per satu, lalu atur urutannya di daftar berkas. Tombol ✂ di tiap foto mendeteksi dokumen otomatis, meluruskannya ke ukuran kertas, dan sudutnya bisa digeser satu per satu.</p><label for="scF">Perapian</label><select id="scF"><option value="doc" selected>Dokumen (abu-abu, kontras ditingkatkan)</option><option value="orig">Warna asli</option><option value="bw">Hitam-putih</option></select><div id="scBwRow" hidden><label for="scBw">Ketebalan hitam: <span id="scBwV">0</span> (tambah jika teks tipis hilang, kurangi jika foto atau latar terlalu hitam)</label><input type="range" id="scBw" min="-40" max="40" value="0"></div><div class="wmrow"><div><label for="scSz">Ukuran halaman</label><select id="scSz"><option value="auto" selected>A4 otomatis (tegak/mendatar sesuai foto)</option><option value="a4p">A4 tegak</option><option value="a4l">A4 mendatar</option><option value="img">Ikuti foto</option></select></div><div><label for="scMar">Margin</label><select id="scMar"><option value="0" selected>Tanpa</option><option value="18">Kecil</option><option value="36">Sedang</option></select></div></div><label for="scFit">Penyesuaian foto ke kertas</label><select id="scFit"><option value="fit" selected>Muat utuh (bisa ada ruang kosong)</option><option value="fill">Isi penuh (tepi terpotong)</option><option value="stretch">Regangkan (bisa sedikit melar)</option></select><label class="chk" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="scTrim" checked> Buang sisa tepi kosong dan gelap di sekeliling dokumen</label><button class="btn pri full" id="go" style="margin-top:12px">Buat PDF</button>';
+    $("#scBw").oninput=()=>{$("#scBwV").textContent=$("#scBw").value};
     $("#scCam").onclick=()=>$("#scIn").click(); $("#scIn").onchange=async e=>{
       const fs=[...e.target.files]; e.target.value=""; const n0=files.length; await addFiles(fs);
       if(!$("#scAuto")||!$("#scAuto").checked) return;
@@ -458,7 +459,7 @@ function openTool(k){
     o.innerHTML='<label for="txT">Teks (Enter = baris baru)</label><textarea id="txT" rows="3" style="width:100%;font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px"></textarea><div class="wmrow"><div><label for="txS">Ukuran (pt)</label><input type="number" id="txS" value="18" min="4" max="200"></div><div><label for="txC">Warna</label><input type="color" id="txC" value="#000000"></div></div><label for="txF">Font</label><select id="txF"><option value="helv">Helvetica</option><option value="helvb">Helvetica Tebal</option><option value="times">Times</option><option value="timesb">Times Tebal</option><option value="cour">Courier</option></select><button class="btn full" id="txAdd" type="button">+ Tambah teks di halaman ini</button><button class="btn full" id="txDel" type="button" style="margin-top:8px">Hapus teks terpilih</button><p class="note">Klik teks di pratinjau untuk memilihnya, lalu geser atau ubah isinya di sini. Hanya huruf Latin yang didukung font standar PDF.</p><button class="btn pri full" id="go" style="margin-top:12px">Simpan teks ke PDF</button>';
     txInit();
   }
-  if(k==="bw") o.innerHTML='<label for="bwM">Mode</label><select id="bwM"><option value="bw" selected>Hitam putih murni (paling hemat)</option><option value="gray">Skala abu-abu</option></select><label for="bwD">Ketajaman</label><select id="bwD"><option value="100">Hemat (100 dpi)</option><option value="150" selected>Sedang (150 dpi)</option><option value="200">Tinggi (200 dpi)</option></select><label for="bwT">Ambang hitam putih: <span id="bwTv">0</span> (kurangi jika teks tipis hilang, tambah jika latar ikut hitam)</label><input type="range" id="bwT" min="-60" max="60" value="0"><label for="bwO">Hasil</label><select id="bwO"><option value="pdf" selected>Satu PDF</option><option value="png">Gambar PNG per halaman</option></select><button class="btn pri full" id="go" style="margin-top:12px">Ubah ke hitam putih</button>';
+  if(k==="bw") o.innerHTML='<label for="bwM">Mode</label><select id="bwM"><option value="bw" selected>Hitam putih murni (paling hemat)</option><option value="gray">Skala abu-abu</option></select><label for="bwD">Ketajaman</label><select id="bwD"><option value="100">Hemat (100 dpi)</option><option value="150" selected>Sedang (150 dpi)</option><option value="200">Tinggi (200 dpi)</option></select><label for="bwT">Ambang hitam putih: <span id="bwTv">0</span> (tambah jika teks tipis hilang, kurangi jika latar ikut hitam)</label><input type="range" id="bwT" min="-60" max="60" value="0"><label for="bwO">Hasil</label><select id="bwO"><option value="pdf" selected>Satu PDF</option><option value="png">Gambar PNG per halaman</option></select><button class="btn pri full" id="go" style="margin-top:12px">Ubah ke hitam putih</button>';
   if(k==="tidy") o.innerHTML='<label class="chk"><input type="checkbox" id="tdD" checked> Luruskan halaman miring</label><label class="chk"><input type="checkbox" id="tdB" checked> Cerahkan latar (hilangkan bayangan dan warna kusam)</label><label class="chk"><input type="checkbox" id="tdT" checked> Potong tepi kosong</label><label for="tdM">Warna</label><select id="tdM"><option value="color" selected>Tetap berwarna</option><option value="gray">Skala abu-abu</option></select><label for="tdQ">Ketajaman</label><select id="tdQ"><option value="150">Sedang (150 dpi)</option><option value="200" selected>Tinggi (200 dpi)</option><option value="300">Sangat tinggi (300 dpi)</option></select><button class="btn pri full" id="go" style="margin-top:12px">Rapikan</button>';
   if(k==="cmp") o.innerHTML='<label class="chk"><input type="checkbox" id="cmOnly" checked> Hanya halaman yang berbeda di PDF hasil</label><p class="note">Tambahkan dua berkas PDF. Urutan bisa digeser di daftar: yang pertama = versi lama, yang kedua = versi baru. Perbandingan berdasarkan tampilan halaman, jadi perubahan kecil pada gambar atau tata letak ikut terdeteksi.</p><button class="btn pri full" id="go" style="margin-top:12px">Bandingkan</button><div id="cmOut" style="margin-top:12px"></div>';
   if(k==="bw"){ $("#bwT").oninput=()=>{$("#bwTv").textContent=$("#bwT").value} }
@@ -831,88 +832,157 @@ async function normImg(g){
   const bl=await new Promise(r=>c.toBlob(r,"image/jpeg",.92)); c.width=c.height=0; return {png:false,bytes:new Uint8Array(await bl.arrayBuffer())};
 }
 
+
+function detectQuad(rc){
+  const sc=Math.min(1,360/Math.max(rc.width,rc.height)), w=Math.max(8,Math.round(rc.width*sc)), h=Math.max(8,Math.round(rc.height*sc));
+  const c=document.createElement("canvas"); c.width=w; c.height=h; const x=c.getContext("2d",{willReadFrequently:true}); x.drawImage(rc,0,0,w,h);
+  const d=x.getImageData(0,0,w,h).data; c.width=c.height=0;
+  let g=new Float32Array(w*h); for(let i=0,j=0;i<d.length;i+=4,j++) g[j]=(d[i]*299+d[i+1]*587+d[i+2]*114)/1000;
+  const blur=a=>{const o=new Float32Array(w*h); for(let y=0;y<h;y++)for(let xx=0;xx<w;xx++){let s=0,n=0; for(let dy=-1;dy<=1;dy++){const yy=y+dy; if(yy<0||yy>=h) continue; for(let dx=-1;dx<=1;dx++){const x2=xx+dx; if(x2<0||x2>=w) continue; s+=a[yy*w+x2];n++}} o[y*w+xx]=s/n} return o};
+  g=blur(blur(g));
+  const hist=new Float64Array(256); for(let i=0;i<g.length;i++) hist[Math.max(0,Math.min(255,g[i]|0))]++;
+  let sum=0; for(let i=0;i<256;i++) sum+=i*hist[i]; let wB=0,sB=0,best=-1,th=128;
+  for(let t=0;t<256;t++){wB+=hist[t]; if(!wB) continue; const wF=g.length-wB; if(!wF) break; sB+=t*hist[t]; const mB=sB/wB,mF=(sum-sB)/wF,v=wB*wF*(mB-mF)*(mB-mF); if(v>best){best=v;th=t}}
+  let m=new Uint8Array(w*h); for(let i=0;i<m.length;i++) m[i]=g[i]>th?1:0;
+  const er=a=>{const o=new Uint8Array(w*h); for(let y=1;y<h-1;y++)for(let xx=1;xx<w-1;xx++){const i=y*w+xx; o[i]=a[i]&&a[i-1]&&a[i+1]&&a[i-w]&&a[i+w]&&a[i-w-1]&&a[i-w+1]&&a[i+w-1]&&a[i+w+1]?1:0} return o};
+  m=er(er(m));
+  const lab=new Int32Array(w*h), st=new Int32Array(w*h); let bl=0,ba=0,nl=0;
+  for(let s0=0;s0<m.length;s0++){ if(!m[s0]||lab[s0]) continue; nl++; let sp=0,ar=0; st[sp++]=s0; lab[s0]=nl;
+    while(sp){const i=st[--sp]; ar++; const y=(i/w)|0, xx=i-y*w; if(xx>0&&m[i-1]&&!lab[i-1]){lab[i-1]=nl;st[sp++]=i-1} if(xx<w-1&&m[i+1]&&!lab[i+1]){lab[i+1]=nl;st[sp++]=i+1} if(y>0&&m[i-w]&&!lab[i-w]){lab[i-w]=nl;st[sp++]=i-w} if(y<h-1&&m[i+w]&&!lab[i+w]){lab[i+w]=nl;st[sp++]=i+w}}
+    if(ar>ba){ba=ar;bl=nl} }
+  if(!bl||ba<w*h*.12) return null;
+  const pts=[]; for(let y=0;y<h;y++)for(let xx=0;xx<w;xx++){const i=y*w+xx; if(lab[i]!==bl) continue; if(xx===0||y===0||xx===w-1||y===h-1||lab[i-1]!==bl||lab[i+1]!==bl||lab[i-w]!==bl||lab[i+w]!==bl) pts.push([xx,y])}
+  pts.sort((p,q)=>p[0]-q[0]||p[1]-q[1]);
+  const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]), lo=[],up=[];
+  for(const p of pts){while(lo.length>=2&&cr(lo[lo.length-2],lo[lo.length-1],p)<=0) lo.pop(); lo.push(p)}
+  for(let i=pts.length-1;i>=0;i--){const p=pts[i]; while(up.length>=2&&cr(up[up.length-2],up[up.length-1],p)<=0) up.pop(); up.push(p)}
+  const H=lo.slice(0,-1).concat(up.slice(0,-1)), n=H.length; if(n<4) return null;
+  const ar4=(a,b,cc,dd)=>Math.abs((a[0]*b[1]-b[0]*a[1])+(b[0]*cc[1]-cc[0]*b[1])+(cc[0]*dd[1]-dd[0]*cc[1])+(dd[0]*a[1]-a[0]*dd[1]))/2;
+  const refine=idx=>{
+    for(let it=0;it<24;it++){let ch=false;
+      for(let k=0;k<4;k++){const pi=idx[(k+3)%4], ni=idx[(k+1)%4]; let bi=idx[k], ba2=-1; const span=((ni-pi)%n+n)%n;
+        for(let s=1;s<span;s++){const j=(pi+s)%n, A=ar4(H[idx[(k+3)%4]],H[j],H[idx[(k+1)%4]],H[idx[(k+2)%4]]); if(A>ba2){ba2=A;bi=j}}
+        if(bi!==idx[k]){idx[k]=bi;ch=true}}
+      if(!ch) break}
+    return idx;
+  };
+  const ext=f=>{let bi=0,bv=-1e9; H.forEach((p,i)=>{const v=f(p); if(v>bv){bv=v;bi=i}}); return bi};
+  const inits=[[ext(p=>-p[1]),ext(p=>p[0]),ext(p=>p[1]),ext(p=>-p[0])],[ext(p=>-(p[0]+p[1])),ext(p=>p[0]-p[1]),ext(p=>p[0]+p[1]),ext(p=>p[1]-p[0])],[0,Math.floor(n/4),Math.floor(n/2),Math.floor(3*n/4)]];
+  let bestQ=null,bestA=-1;
+  for(let idx of inits){ idx=[...new Set(idx)].sort((a,b)=>a-b); if(idx.length<4) continue; idx=refine(idx); const A=ar4(H[idx[0]],H[idx[1]],H[idx[2]],H[idx[3]]); if(A>bestA){bestA=A;bestQ=idx.map(i=>H[i])} }
+  if(!bestQ||bestA<w*h*.12) return null;
+  const cx0=bestQ.reduce((s,p)=>s+p[0],0)/4, cy0=bestQ.reduce((s,p)=>s+p[1],0)/4;
+  bestQ.sort((p,q)=>Math.atan2(p[1]-cy0,p[0]-cx0)-Math.atan2(q[1]-cy0,q[0]-cx0));
+  let k0=0,mv=1e9; bestQ.forEach((p,i)=>{if(p[0]+p[1]<mv){mv=p[0]+p[1];k0=i}}); bestQ=bestQ.slice(k0).concat(bestQ.slice(0,k0));
+  const out=bestQ.map(p=>{const dx=p[0]-cx0, dy=p[1]-cy0, L=Math.hypot(dx,dy)||1, f=1+3/L; return [Math.max(0,Math.min(w,cx0+dx*f))/sc, Math.max(0,Math.min(h,cy0+dy*f))/sc]});
+  return out.map(p=>[Math.max(0,Math.min(rc.width,p[0])),Math.max(0,Math.min(rc.height,p[1]))]);
+}
+function quadOk(q){let s=0; for(let i=0;i<4;i++){const a=q[i],b=q[(i+1)%4],c=q[(i+2)%4], z=(b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]); if(Math.abs(z)<1e-6) return false; if(!s) s=Math.sign(z); else if(Math.sign(z)!==s) return false} return true}
+function warpQuad(src,q,W,H){
+  const sw=src.width, sh=src.height, sd=src.getContext("2d",{willReadFrequently:true}).getImageData(0,0,sw,sh).data;
+  const [p0,p1,p2,p3]=q, dx1=p1[0]-p2[0], dx2=p3[0]-p2[0], dx3=p0[0]-p1[0]+p2[0]-p3[0], dy1=p1[1]-p2[1], dy2=p3[1]-p2[1], dy3=p0[1]-p1[1]+p2[1]-p3[1];
+  let a,b,c,d,e,f,g=0,h=0;
+  if(Math.abs(dx3)<1e-9&&Math.abs(dy3)<1e-9){a=p1[0]-p0[0];b=p2[0]-p1[0];c=p0[0];d=p1[1]-p0[1];e=p2[1]-p1[1];f=p0[1]}
+  else{const den=dx1*dy2-dy1*dx2; g=(dx3*dy2-dy3*dx2)/den; h=(dx1*dy3-dy1*dx3)/den; a=p1[0]-p0[0]+g*p1[0]; b=p3[0]-p0[0]+h*p3[0]; c=p0[0]; d=p1[1]-p0[1]+g*p1[1]; e=p3[1]-p0[1]+h*p3[1]; f=p0[1]}
+  const oc=document.createElement("canvas"); oc.width=W; oc.height=H; const ox=oc.getContext("2d"), id=ox.createImageData(W,H), od=id.data;
+  for(let j=0;j<H;j++){const v=(j+.5)/H; for(let i=0;i<W;i++){const u=(i+.5)/W, den=g*u+h*v+1; let X=(a*u+b*v+c)/den-.5, Y=(d*u+e*v+f)/den-.5;
+    X=X<0?0:X>sw-1?sw-1:X; Y=Y<0?0:Y>sh-1?sh-1:Y; const x0=X|0, y0=Y|0, x1=x0+1<sw?x0+1:x0, y1=y0+1<sh?y0+1:y0, fx=X-x0, fy=Y-y0, i00=(y0*sw+x0)*4, i10=(y0*sw+x1)*4, i01=(y1*sw+x0)*4, i11=(y1*sw+x1)*4, o=(j*W+i)*4;
+    for(let k=0;k<3;k++) od[o+k]=(sd[i00+k]*(1-fx)+sd[i10+k]*fx)*(1-fy)+(sd[i01+k]*(1-fx)+sd[i11+k]*fx)*fy;
+    od[o+3]=255}}
+  ox.putImageData(id,0,0); return oc;
+}
 async function cropEdit(f,title){
   return new Promise(async done=>{
     let bmp; try{bmp=await bmpOf(f)}catch(e){setSt("Foto tidak bisa dibuka untuk dipotong.","err");return done(false)}
-    const prevFocus=document.activeElement, ov=document.createElement("div"); ov.id="cropM"; ov.setAttribute("role","dialog"); ov.setAttribute("aria-modal","true"); ov.setAttribute("aria-label","Potong foto");
-    ov.innerHTML='<div class="cmh"><b></b><span class="meta">Seret sudut atau sisi kotak untuk memilih bagian yang dipakai. Bagian gelap dibuang.</span></div><div class="cms"><canvas></canvas></div><div class="cmb"><button class="btn sm" data-a="l" aria-label="Putar kiri">↶</button><button class="btn sm" data-a="r" aria-label="Putar kanan">↷</button><button class="btn sm" data-a="full">Pilih semua</button><button class="btn sm" data-a="orig">Kembalikan asli</button><span style="flex:1"></span><button class="btn sm" data-a="skip">Lewati</button><button class="btn pri sm" data-a="ok">Terapkan</button></div>';
+    const prevFocus=document.activeElement, ov=document.createElement("div"); ov.id="cropM"; ov.setAttribute("role","dialog"); ov.setAttribute("aria-modal","true"); ov.setAttribute("aria-label","Potong dan luruskan foto");
+    ov.innerHTML='<div class="cmh"><b></b><span class="meta" id="cmMsg">Seret keempat sudut agar pas dengan tepi dokumen. Kotak kecil di sisi menggeser satu sisi, seret bagian dalam untuk memindahkan semuanya.</span></div><div class="cms"><canvas></canvas></div><div class="cmb"><button class="btn sm" data-a="l" aria-label="Putar kiri">↶</button><button class="btn sm" data-a="r" aria-label="Putar kanan">↷</button><button class="btn sm" data-a="auto">🔍 Deteksi dokumen</button><button class="btn sm" data-a="full">Pilih semua</button><label class="cmr">Hasil <select id="cmR"><option value="a4" selected>Luruskan ke A4 (otomatis)</option><option value="a4p">Luruskan ke A4 tegak</option><option value="a4l">Luruskan ke A4 mendatar</option><option value="nat">Luruskan, ikuti bentuk dokumen</option></select></label><button class="btn sm" data-a="orig">Kembalikan asli</button><span style="flex:1"></span><button class="btn sm" data-a="skip">Lewati</button><button class="btn pri sm" data-a="ok">Terapkan</button></div>';
     ov.querySelector("b").textContent=title||"Potong foto"; document.body.append(ov);
-    const cv=ov.querySelector("canvas"), cx=cv.getContext("2d"), rc=document.createElement("canvas"), dpr=Math.min(window.devicePixelRatio||1,2);
-    let rot=0, r, ds=1, W=0, H=0, drag=null, changed=false, restored=false;
+    const cv=ov.querySelector("canvas"), cx=cv.getContext("2d"), rc=document.createElement("canvas"), dpr=Math.min(window.devicePixelRatio||1,2), msg=ov.querySelector("#cmMsg");
+    const PAD=16; let rot=0, q=[[0,0],[1,0],[1,1],[0,1]], ds=1, W=0, H=0, drag=null, touched=false, restored=false;
     const orgB=ov.querySelector('[data-a="orig"]'); orgB.hidden=!f.orig;
-    const mk=()=>{
+    const fullQ=()=>[[0,0],[rc.width,0],[rc.width,rc.height],[0,rc.height]];
+    const autoQ=()=>{let a=null; try{a=detectQuad(rc)}catch(e){} if(a&&quadOk(a)){q=a; msg.textContent="Dokumen terdeteksi otomatis. Sesuaikan sudut bila perlu, lalu Terapkan."; return true} q=fullQ(); msg.textContent="Dokumen tidak terdeteksi otomatis. Seret keempat sudut ke tepi dokumen."; return false};
+    const mk=(auto=true)=>{
       const sc=Math.min(1,3000/Math.max(bmp.width,bmp.height)), w=Math.max(1,Math.round(bmp.width*sc)), h=Math.max(1,Math.round(bmp.height*sc)), odd=rot%2;
-      rc.width=odd?h:w; rc.height=odd?w:h; const x=rc.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,rc.width,rc.height);
+      rc.width=odd?h:w; rc.height=odd?w:h; const x=rc.getContext("2d",{willReadFrequently:true}); x.fillStyle="#fff"; x.fillRect(0,0,rc.width,rc.height);
       x.save(); x.translate(rc.width/2,rc.height/2); x.rotate(rot*Math.PI/2); x.imageSmoothingQuality="high"; x.drawImage(bmp,-w/2,-h/2,w,h); x.restore();
-      r={x0:0,y0:0,x1:rc.width,y1:rc.height}; lay(); draw();
+      if(auto) autoQ(); else q=fullQ(); lay(); draw();
     };
     const lay=()=>{
-      const st=ov.querySelector(".cms"), mw=Math.max(120,st.clientWidth-16), mh=Math.max(120,st.clientHeight-8);
+      const st=ov.querySelector(".cms"), mw=Math.max(120,st.clientWidth-16-2*PAD), mh=Math.max(120,st.clientHeight-8-2*PAD);
       ds=Math.min(mw/rc.width,mh/rc.height); W=Math.round(rc.width*ds); H=Math.round(rc.height*ds);
-      cv.width=W*dpr; cv.height=H*dpr; cv.style.width=W+"px"; cv.style.height=H+"px";
+      cv.width=(W+2*PAD)*dpr; cv.height=(H+2*PAD)*dpr; cv.style.width=(W+2*PAD)+"px"; cv.style.height=(H+2*PAD)+"px";
     };
     const draw=()=>{
-      cx.setTransform(dpr,0,0,dpr,0,0); cx.drawImage(rc,0,0,W,H);
-      const X0=r.x0*ds,Y0=r.y0*ds,X1=r.x1*ds,Y1=r.y1*ds;
-      cx.fillStyle="rgba(0,0,0,.6)"; cx.fillRect(0,0,W,Y0); cx.fillRect(0,Y1,W,H-Y1); cx.fillRect(0,Y0,X0,Y1-Y0); cx.fillRect(X1,Y0,W-X1,Y1-Y0);
-      cx.strokeStyle="#39c5bb"; cx.lineWidth=2; cx.strokeRect(X0,Y0,X1-X0,Y1-Y0);
-      cx.strokeStyle="rgba(255,255,255,.35)"; cx.lineWidth=1; cx.beginPath();
-      for(let k=1;k<3;k++){cx.moveTo(X0+(X1-X0)*k/3,Y0);cx.lineTo(X0+(X1-X0)*k/3,Y1);cx.moveTo(X0,Y0+(Y1-Y0)*k/3);cx.lineTo(X1,Y0+(Y1-Y0)*k/3)} cx.stroke();
-      cx.fillStyle="#fff"; cx.strokeStyle="#0b8a82"; cx.lineWidth=2;
-      [[X0,Y0],[X1,Y0],[X0,Y1],[X1,Y1],[(X0+X1)/2,Y0],[(X0+X1)/2,Y1],[X0,(Y0+Y1)/2],[X1,(Y0+Y1)/2]].forEach(([a,b])=>{cx.beginPath();cx.rect(a-6,b-6,12,12);cx.fill();cx.stroke()});
+      cx.setTransform(dpr,0,0,dpr,PAD*dpr,PAD*dpr); cx.clearRect(-PAD,-PAD,W+2*PAD,H+2*PAD); cx.drawImage(rc,0,0,W,H);
+      const P=q.map(p=>[p[0]*ds,p[1]*ds]), ok=quadOk(q), col=ok?"#39c5bb":"#ff4d9d";
+      cx.save(); cx.beginPath(); cx.rect(0,0,W,H); cx.moveTo(P[0][0],P[0][1]); for(let i=1;i<4;i++) cx.lineTo(P[i][0],P[i][1]); cx.closePath(); cx.fillStyle="rgba(0,0,0,.55)"; cx.fill("evenodd"); cx.restore();
+      cx.beginPath(); cx.moveTo(P[0][0],P[0][1]); for(let i=1;i<4;i++) cx.lineTo(P[i][0],P[i][1]); cx.closePath(); cx.strokeStyle=col; cx.lineWidth=2; cx.stroke();
+      for(let i=0;i<4;i++){const a=P[i],b=P[(i+1)%4], mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2; cx.fillStyle="#fff"; cx.strokeStyle=col; cx.lineWidth=2; cx.beginPath(); cx.rect(mx-5,my-5,10,10); cx.fill(); cx.stroke()}
+      for(let i=0;i<4;i++){cx.fillStyle=col; cx.strokeStyle="#fff"; cx.lineWidth=2; cx.beginPath(); cx.arc(P[i][0],P[i][1],9,0,7); cx.fill(); cx.stroke()}
+      if(drag&&drag.t==="c"){
+        const p=q[drag.i], R=52, Z=3, lx=P[drag.i][0]<W/2?W-R-10:R+10, ly=R+10;
+        cx.save(); cx.beginPath(); cx.arc(lx,ly,R,0,7); cx.clip(); cx.fillStyle="#000"; cx.fillRect(lx-R,ly-R,2*R,2*R);
+        const sr=R/(ds*Z); cx.drawImage(rc,p[0]-sr,p[1]-sr,2*sr,2*sr,lx-R,ly-R,2*R,2*R); cx.restore();
+        cx.strokeStyle="#fff"; cx.lineWidth=3; cx.beginPath(); cx.arc(lx,ly,R,0,7); cx.stroke(); cx.strokeStyle=col; cx.lineWidth=1.5; cx.beginPath(); cx.moveTo(lx-12,ly);cx.lineTo(lx+12,ly);cx.moveTo(lx,ly-12);cx.lineTo(lx,ly+12); cx.stroke();
+      }
     };
-    const pos=e=>{const b=cv.getBoundingClientRect(); return {x:(e.clientX-b.left)/ds,y:(e.clientY-b.top)/ds}};
-    const hit=p=>{
-      const T=(e=>e.pointerType==="touch"?28:16)(window.__pt||{}), t=T/ds, nl=Math.abs(p.x-r.x0)<t, nr=Math.abs(p.x-r.x1)<t, nt=Math.abs(p.y-r.y0)<t, nb=Math.abs(p.y-r.y1)<t;
-      const inX=p.x>r.x0-t&&p.x<r.x1+t, inY=p.y>r.y0-t&&p.y<r.y1+t;
-      if(nl&&nt) return "tl"; if(nr&&nt) return "tr"; if(nl&&nb) return "bl"; if(nr&&nb) return "br";
-      if(nt&&inX) return "t"; if(nb&&inX) return "b"; if(nl&&inY) return "l"; if(nr&&inY) return "r";
-      if(p.x>r.x0&&p.x<r.x1&&p.y>r.y0&&p.y<r.y1) return "move"; return "new";
+    const pos=e=>{const b=cv.getBoundingClientRect(); return {x:e.clientX-b.left-PAD,y:e.clientY-b.top-PAD}};
+    const inPoly=(p)=>{let c=false; const P=q.map(a=>[a[0]*ds,a[1]*ds]); for(let i=0,j=3;i<4;j=i++){const a=P[i],b=P[j]; if((a[1]>p.y)!==(b[1]>p.y)&&p.x<(b[0]-a[0])*(p.y-a[1])/(b[1]-a[1])+a[0]) c=!c} return c};
+    const hit=(p,touch)=>{
+      const R=touch?32:20; let bi=-1,bd=1e9;
+      q.forEach((a,i)=>{const d=Math.hypot(a[0]*ds-p.x,a[1]*ds-p.y); if(d<R&&d<bd){bd=d;bi=i}}); if(bi>=0) return {t:"c",i:bi};
+      for(let i=0;i<4;i++){const a=q[i],b=q[(i+1)%4], d=Math.hypot((a[0]+b[0])/2*ds-p.x,(a[1]+b[1])/2*ds-p.y); if(d<R*.8) return {t:"e",i}}
+      if(inPoly(p)) return {t:"m"}; return null;
     };
-    const CUR={tl:"nwse-resize",br:"nwse-resize",tr:"nesw-resize",bl:"nesw-resize",t:"ns-resize",b:"ns-resize",l:"ew-resize",r:"ew-resize",move:"move","new":"crosshair"};
-    const cl=(v,a,b)=>Math.max(a,Math.min(b,v)), MIN=()=>Math.max(8,28/ds);
-    cv.onpointerdown=e=>{window.__pt={pointerType:e.pointerType}; const p=pos(e), m=hit(p); drag={m,p,r0:{...r},a:p}; cv.setPointerCapture(e.pointerId); e.preventDefault()};
+    const CUR={c:"crosshair",e:"move",m:"move"};
+    let touchMode=false;
+    cv.onpointerdown=e=>{touchMode=e.pointerType==="touch"; const p=pos(e), h=hit(p,touchMode); if(!h) return; drag={...h,p,q0:q.map(a=>[...a])}; touched=true; cv.setPointerCapture(e.pointerId); e.preventDefault(); draw()};
     cv.onpointermove=e=>{
       const p=pos(e);
-      if(!drag){window.__pt={pointerType:e.pointerType}; cv.style.cursor=CUR[hit(p)]; return}
-      const m=drag.m, o=drag.r0, dx=p.x-drag.p.x, dy=p.y-drag.p.y, mn=MIN(), n={...o};
-      if(m==="move"){const w=o.x1-o.x0,h=o.y1-o.y0; n.x0=cl(o.x0+dx,0,rc.width-w); n.y0=cl(o.y0+dy,0,rc.height-h); n.x1=n.x0+w; n.y1=n.y0+h}
-      else if(m==="new"){n.x0=cl(Math.min(drag.a.x,p.x),0,rc.width); n.x1=cl(Math.max(drag.a.x,p.x),0,rc.width); n.y0=cl(Math.min(drag.a.y,p.y),0,rc.height); n.y1=cl(Math.max(drag.a.y,p.y),0,rc.height); if(n.x1-n.x0<mn||n.y1-n.y0<mn) Object.assign(n,o)}
+      if(!drag){const h=hit(p,e.pointerType==="touch"); cv.style.cursor=h?CUR[h.t]:"default"; return}
+      const dx=(p.x-drag.p.x)/ds, dy=(p.y-drag.p.y)/ds, o=drag.q0, cl=(v,m)=>Math.max(0,Math.min(m,v)), n=o.map(a=>[...a]);
+      if(drag.t==="c"){n[drag.i]=[cl(o[drag.i][0]+dx,rc.width),cl(o[drag.i][1]+dy,rc.height)]}
       else{
-        if(m.includes("l")) n.x0=cl(o.x0+dx,0,o.x1-mn); if(m.includes("r")) n.x1=cl(o.x1+dx,o.x0+mn,rc.width);
-        if(m.includes("t")) n.y0=cl(o.y0+dy,0,o.y1-mn); if(m.includes("b")) n.y1=cl(o.y1+dy,o.y0+mn,rc.height);
+        const idx=drag.t==="e"?[drag.i,(drag.i+1)%4]:[0,1,2,3];
+        let mnx=-1e9,mxx=1e9,mny=-1e9,mxy=1e9; idx.forEach(i=>{mnx=Math.max(mnx,-o[i][0]);mxx=Math.min(mxx,rc.width-o[i][0]);mny=Math.max(mny,-o[i][1]);mxy=Math.min(mxy,rc.height-o[i][1])});
+        const ddx=Math.max(mnx,Math.min(mxx,dx)), ddy=Math.max(mny,Math.min(mxy,dy)); idx.forEach(i=>{n[i]=[o[i][0]+ddx,o[i][1]+ddy]});
       }
-      r=n; draw();
+      q=n; draw();
     };
-    cv.onpointerup=cv.onpointercancel=()=>{drag=null};
+    cv.onpointerup=cv.onpointercancel=()=>{drag=null;draw()};
     const fin=v=>{window.removeEventListener("keydown",key,true);window.removeEventListener("resize",rs);if(bmp.close)bmp.close();rc.width=rc.height=0;ov.remove();if(prevFocus&&prevFocus.focus)try{prevFocus.focus()}catch(e){};done(v)};
     const key=e=>{if(e.key==="Escape"){e.stopPropagation();fin(restored)}};
     const rs=()=>{lay();draw()};
     window.addEventListener("keydown",key,true); window.addEventListener("resize",rs);
-    const full=()=>{r={x0:0,y0:0,x1:rc.width,y1:rc.height};draw()};
     ov.querySelector(".cmb").onclick=async e=>{
-      const el=e.target.closest("[data-a]"); if(!el) return; const a=el.dataset.a;
-      if(a==="l"||a==="r"){rot=(rot+(a==="r"?1:3))%4; changed=true; mk()}
-      else if(a==="full") full();
+      const el=e.target.closest("button[data-a]"); if(!el) return; const a=el.dataset.a;
+      if(a==="l"||a==="r"){rot=(rot+(a==="r"?1:3))%4; mk(true)}
+      else if(a==="auto"){autoQ(); draw()}
+      else if(a==="full"){q=fullQ(); msg.textContent="Seluruh foto dipilih."; draw()}
       else if(a==="skip") fin(restored);
       else if(a==="orig"){
-        f.bytes=f.orig.bytes; f.png=f.orig.png; f.orig=null; orgB.hidden=true; restored=true; changed=false; rot=0;
-        try{bmp.close&&bmp.close(); bmp=await bmpOf(f)}catch(er){} mk();
+        f.bytes=f.orig.bytes; f.png=f.orig.png; f.orig=null; orgB.hidden=true; restored=true; rot=0;
+        try{bmp.close&&bmp.close(); bmp=await bmpOf(f)}catch(er){} mk(true);
       }
       else if(a==="ok"){
-        const w=Math.round(r.x1-r.x0), h=Math.round(r.y1-r.y0), isFull=rot===0&&r.x0<1&&r.y0<1&&r.x1>rc.width-1&&r.y1>rc.height-1;
-        if(isFull&&!changed) return fin(restored);
-        const oc=document.createElement("canvas"); oc.width=w; oc.height=h; oc.getContext("2d").drawImage(rc,Math.round(r.x0),Math.round(r.y0),w,h,0,0,w,h);
-        const png=!!f.png, bl=await new Promise(res=>oc.toBlob(res,png?"image/png":"image/jpeg",.92)); oc.width=oc.height=0;
-        if(!bl){setSt("Gagal memotong foto.","err");return}
+        if(!quadOk(q)){msg.textContent="Sudut tidak valid: bentuknya harus cembung dan tidak menyilang. Geser sudut yang berwarna merah muda."; return}
+        const d=(a1,b1)=>Math.hypot(a1[0]-b1[0],a1[1]-b1[1]), wTop=d(q[0],q[1]), wBot=d(q[3],q[2]), hL=d(q[0],q[3]), hR=d(q[1],q[2]), nw=(wTop+wBot)/2, nh=(hL+hR)/2, mode=ov.querySelector("#cmR").value;
+        const isRect=q.every((p,i)=>Math.abs(p[0]-(i===1||i===2?rc.width:0))<1.5&&Math.abs(p[1]-(i>=2?rc.height:0))<1.5);
+        if(isRect&&rot===0&&mode==="nat"&&!touched) return fin(restored);
+        let ow,oh; const long=Math.max(900,Math.min(2800,Math.round(Math.max(nw,nh))));
+        if(mode!=="nat"){ const land=mode==="a4l"||(mode==="a4"&&nw>nh*1.15); if(land){ow=long;oh=Math.round(long/1.41421)}else{oh=long;ow=Math.round(long/1.41421)} }
+        else{const s=long/Math.max(nw,nh); ow=Math.max(2,Math.round(nw*s)); oh=Math.max(2,Math.round(nh*s))}
+        el.disabled=true; msg.textContent="Meluruskan…"; await new Promise(r=>setTimeout(r,30));
+        const oc=warpQuad(rc,q,ow,oh), png=!!f.png, bl=await new Promise(res=>oc.toBlob(res,png?"image/png":"image/jpeg",.92)); oc.width=oc.height=0; el.disabled=false;
+        if(!bl){msg.textContent="Gagal memproses foto."; return}
         if(!f.orig) f.orig={bytes:f.bytes,png:f.png};
         f.bytes=new Uint8Array(await bl.arrayBuffer()); fin(true);
       }
     };
-    mk(); ov.querySelector('[data-a="ok"]').focus();
+    mk(true); ov.querySelector('[data-a="ok"]').focus();
   });
 }
-
 function trimWhite(bmp){
   const sc=Math.min(1,420/Math.max(bmp.width,bmp.height)), w=Math.max(1,Math.round(bmp.width*sc)), h=Math.max(1,Math.round(bmp.height*sc));
   const c=document.createElement("canvas"); c.width=w; c.height=h; const x=c.getContext("2d",{willReadFrequently:true}); x.drawImage(bmp,0,0,w,h);
@@ -968,7 +1038,7 @@ async function makePage(g,o){
         const W1=cw+1, I=new Float64Array(W1*(ch+1));
         for(let y=0;y<ch;y++){let r=0; for(let xx=0;xx<cw;xx++){r+=gr[y*cw+xx]; I[(y+1)*W1+xx+1]=I[y*W1+xx+1]+r}}
         const rad=Math.max(8,Math.round(Math.min(cw,ch)/24));
-        for(let y=0;y<ch;y++){const y0=Math.max(0,y-rad),y1=Math.min(ch,y+rad+1); for(let xx=0;xx<cw;xx++){const x0=Math.max(0,xx-rad),x1=Math.min(cw,xx+rad+1), mm=(I[y1*W1+x1]-I[y0*W1+x1]-I[y1*W1+x0]+I[y0*W1+x0])/((x1-x0)*(y1-y0)), v=gr[y*cw+xx]<mm*.9?0:255, i=(y*cw+xx)*4; d[i]=d[i+1]=d[i+2]=v}}
+        for(let y=0;y<ch;y++){const y0=Math.max(0,y-rad),y1=Math.min(ch,y+rad+1); for(let xx=0;xx<cw;xx++){const x0=Math.max(0,xx-rad),x1=Math.min(cw,xx+rad+1), mm=(I[y1*W1+x1]-I[y0*W1+x1]-I[y1*W1+x0]+I[y0*W1+x0])/((x1-x0)*(y1-y0)), v=gr[y*cw+xx]<mm*(.82+(o.bw||0)/200)?0:255, i=(y*cw+xx)*4; d[i]=d[i+1]=d[i+2]=v}}
         png=true;
       }
       x.putImageData(id,0,0);
@@ -978,14 +1048,14 @@ async function makePage(g,o){
   }finally{if(bmp.close) bmp.close()}
 }
 const pgOpts=k=>k==="scan"
-  ?{k:.4,mode:$("#scF").value,sz:$("#scSz").value,m:Number($("#scMar").value)||0,fit:$("#scFit").value,trim:$("#scTrim").checked,maxd:2200,q:.82}
+  ?{k:.4,mode:$("#scF").value,sz:$("#scSz").value,m:Number($("#scMar").value)||0,fit:$("#scFit").value,trim:$("#scTrim").checked,bw:Number($("#scBw").value)||0,maxd:2200,q:.82}
   :{k:.75,mode:"orig",sz:$("#ipSize").value,m:Number($("#ipMar").value)||0,fit:$("#ipFit").value,trim:$("#ipTrim").checked,maxd:4000,q:.92};
-$("#opts").addEventListener("change",e=>{if((tool==="scan"||tool==="i2p")&&e.target.id!=="scIn") drawSel()});
+$("#opts").addEventListener("change",e=>{if(tool==="scan"&&$("#scBwRow")) $("#scBwRow").hidden=$("#scF").value!=="bw"; if((tool==="scan"||tool==="i2p")&&e.target.id!=="scIn") drawSel()});
 const pvCache=new WeakMap(); let pvTok=0;
 async function drawPgPrev(k){
   const box=$("#selBox");
   if(!files.length||!$(k==="scan"?"#scFit":"#ipFit")){box.hidden=true;box.innerHTML="";return}
-  box.hidden=false; const tok=++pvTok, o=Object.assign(pgOpts(k),{maxd:560,q:.7,forceProc:true}), key=[o.mode,o.sz,o.m,o.fit,o.trim].join("|");
+  box.hidden=false; const tok=++pvTok, o=Object.assign(pgOpts(k),{maxd:560,q:.7,forceProc:true}), key=[o.mode,o.sz,o.m,o.fit,o.trim,o.bw].join("|");
   box.innerHTML='<div class="sh"><div><b>Pratinjau hasil</b><span class="badge"></span></div></div><div class="pgwrap" id="pgw"></div><p class="note">Pratinjau mengikuti pilihan di panel dan diperbarui otomatis. Hasil akhir memakai resolusi penuh.</p>';
   const g=document.createElement("div"); g.className="pvg"; $("#pgw").append(g);
   const cells=files.map((f,i)=>{
@@ -1132,7 +1202,7 @@ function drawFiles(){
         if(f.thU&&f.thB!==f.bytes){URL.revokeObjectURL(f.thU);f.thU=null}
         if(!f.thU){f.thU=URL.createObjectURL(new Blob([f.bytes],{type:f.png?"image/png":"image/jpeg"}));f.thB=f.bytes}
         const im=document.createElement("img"); im.className="fth"; im.alt=""; im.src=f.thU; c.prepend(im);
-        const ed=document.createElement("button"); ed.className="btn sm"; ed.textContent="✂ Potong"; ed.setAttribute("aria-label","Potong atau putar "+f.name);
+        const ed=document.createElement("button"); ed.className="btn sm"; ed.textContent="✂ Potong/Luruskan"; ed.setAttribute("aria-label","Potong atau putar "+f.name);
         ed.onclick=async e=>{e.stopPropagation(); if(await cropEdit(f,"Potong foto")) drawFiles()}; parts.push(ed);
       }
       c.append(...parts,mv("↑","Naikkan",i-1,i===0),mv("↓","Turunkan",i+1,i===files.length-1),b);
