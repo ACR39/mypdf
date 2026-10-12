@@ -199,6 +199,12 @@ body.bgmode .sheet{background:color-mix(in srgb,var(--panel) 86%,transparent);-w
 .pvp{position:relative;width:100%;background:#fff;border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.12);overflow:hidden}
 .pvp img{position:absolute;display:block}
 .pvc .meta{font-size:.74rem;text-align:center}
+
+.fstrip{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 8px;margin:2px 0 4px}
+.fb{flex:none;width:74px;border:2px solid transparent;border-radius:8px;background:var(--panel);padding:0;cursor:pointer;overflow:hidden;display:block;font:inherit}
+.fb canvas{display:block;width:100%;aspect-ratio:1;background:#e6eceb}
+.fb span{display:block;font-size:.72rem;padding:3px 2px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+.fb.on{border-color:var(--acc)}.fb.on span{background:var(--acc);color:var(--acc-ink)}
 </style>
 </head>
 <body>
@@ -435,8 +441,9 @@ function openTool(k){
     $("#blS").onchange=()=>{if(blInk){blApply();if(blUpd)blUpd()}};
   }
   if(k==="scan"){
-    o.innerHTML='<button class="btn pri full" id="scCam" type="button">📷 Ambil foto dengan kamera</button><input type="file" id="scIn" accept="image/*" capture="environment" hidden><label class="chk" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="scAuto" checked> Buka editor potong/luruskan setelah foto diambil</label><p class="note">Di ponsel tombol ini membuka kamera. Di komputer, pakai tombol Tambah untuk memilih gambar. Ambil foto satu per satu, lalu atur urutannya di daftar berkas. Tombol ✂ di tiap foto mendeteksi dokumen otomatis, meluruskannya ke ukuran kertas, dan sudutnya bisa digeser satu per satu.</p><label for="scF">Perapian</label><select id="scF"><option value="doc" selected>Dokumen (abu-abu, kontras ditingkatkan)</option><option value="orig">Warna asli</option><option value="bw">Hitam-putih</option></select><div id="scBwRow" hidden><label for="scBw">Ketebalan hitam: <span id="scBwV">0</span> (tambah jika teks tipis hilang, kurangi jika foto atau latar terlalu hitam)</label><input type="range" id="scBw" min="-40" max="40" value="0"></div><div class="wmrow"><div><label for="scSz">Ukuran halaman</label><select id="scSz"><option value="auto" selected>A4 otomatis (tegak/mendatar sesuai foto)</option><option value="a4p">A4 tegak</option><option value="a4l">A4 mendatar</option><option value="img">Ikuti foto</option></select></div><div><label for="scMar">Margin</label><select id="scMar"><option value="0" selected>Tanpa</option><option value="18">Kecil</option><option value="36">Sedang</option></select></div></div><label for="scFit">Penyesuaian foto ke kertas</label><select id="scFit"><option value="fit" selected>Muat utuh (bisa ada ruang kosong)</option><option value="fill">Isi penuh (tepi terpotong)</option><option value="stretch">Regangkan (bisa sedikit melar)</option></select><label class="chk" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="scTrim" checked> Buang sisa tepi kosong dan gelap di sekeliling dokumen</label><button class="btn pri full" id="go" style="margin-top:12px">Buat PDF</button>';
+    o.innerHTML='<button class="btn pri full" id="scCam" type="button">📷 Ambil foto dengan kamera</button><input type="file" id="scIn" accept="image/*" capture="environment" hidden><label class="chk" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="scAuto" checked> Buka editor potong/luruskan setelah foto diambil</label><p class="note">Di ponsel tombol ini membuka kamera. Di komputer, pakai tombol Tambah untuk memilih gambar. Ambil foto satu per satu, lalu atur urutannya di daftar berkas. Tombol ✂ di tiap foto mendeteksi dokumen otomatis, meluruskannya ke ukuran kertas, dan sudutnya bisa digeser satu per satu.</p><label>Filter</label><div class="fstrip" id="scStrip" role="listbox" aria-label="Filter"></div><select id="scF" hidden><option value="orig">Original</option><option value="bright">Cerahkan</option><option value="magic">Warna Ajaib</option><option value="pro">Magic Pro</option><option value="nosh">Tanpa Bayangan</option><option value="doc" selected>Dokumen</option><option value="hp">H&amp;P</option><option value="save">Hemat</option><option value="gray">Abu-abu</option><option value="inv">Balik</option></select><div id="scBwRow" hidden><label for="scBw">Ketebalan hitam: <span id="scBwV">0</span> (tambah jika teks tipis hilang, kurangi jika foto atau latar terlalu hitam; berlaku untuk H&P dan Hemat)</label><input type="range" id="scBw" min="-40" max="40" value="0"></div><div class="wmrow"><div><label for="scSz">Ukuran halaman</label><select id="scSz"><option value="auto" selected>A4 otomatis (tegak/mendatar sesuai foto)</option><option value="a4p">A4 tegak</option><option value="a4l">A4 mendatar</option><option value="img">Ikuti foto</option></select></div><div><label for="scMar">Margin</label><select id="scMar"><option value="0" selected>Tanpa</option><option value="18">Kecil</option><option value="36">Sedang</option></select></div></div><label for="scFit">Penyesuaian foto ke kertas</label><select id="scFit"><option value="fit" selected>Muat utuh (bisa ada ruang kosong)</option><option value="fill">Isi penuh (tepi terpotong)</option><option value="stretch">Regangkan (bisa sedikit melar)</option></select><label class="chk" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="scTrim" checked> Buang sisa tepi kosong dan gelap di sekeliling dokumen</label><button class="btn pri full" id="go" style="margin-top:12px">Buat PDF</button>';
     $("#scBw").oninput=()=>{$("#scBwV").textContent=$("#scBw").value};
+    buildStrip();
     $("#scCam").onclick=()=>$("#scIn").click(); $("#scIn").onchange=async e=>{
       const fs=[...e.target.files]; e.target.value=""; const n0=files.length; await addFiles(fs);
       if(!$("#scAuto")||!$("#scAuto").checked) return;
@@ -983,6 +990,92 @@ async function cropEdit(f,title){
     mk(true); ov.querySelector('[data-a="ok"]').focus();
   });
 }
+
+function boxMax(a,w,h,r){
+  const t=new Float32Array(w*h), o=new Float32Array(w*h);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){let m=-1; const x0=Math.max(0,x-r), x1=Math.min(w-1,x+r); for(let k=x0;k<=x1;k++){const v=a[y*w+k]; if(v>m)m=v} t[y*w+x]=m}
+  for(let y=0;y<h;y++){const y0=Math.max(0,y-r), y1=Math.min(h-1,y+r); for(let x=0;x<w;x++){let m=-1; for(let k=y0;k<=y1;k++){const v=t[k*w+x]; if(v>m)m=v} o[y*w+x]=m}}
+  return o;
+}
+function boxAvg(a,w,h,r){
+  const t=new Float32Array(w*h), o=new Float32Array(w*h);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){let s=0,n=0; const x0=Math.max(0,x-r), x1=Math.min(w-1,x+r); for(let k=x0;k<=x1;k++){s+=a[y*w+k];n++} t[y*w+x]=s/n}
+  for(let y=0;y<h;y++){const y0=Math.max(0,y-r), y1=Math.min(h-1,y+r); for(let x=0;x<w;x++){let s=0,n=0; for(let k=y0;k<=y1;k++){s+=t[k*w+x];n++} o[y*w+x]=s/n}}
+  return o;
+}
+function bgEst(d,w,h){
+  const f=Math.max(3,Math.round(Math.max(w,h)/200)), w2=Math.ceil(w/f), h2=Math.ceil(h/f), S=[0,1,2].map(()=>new Float32Array(w2*h2)), N=new Uint16Array(w2*h2);
+  for(let y=0;y<h;y++){const row=((y/f)|0)*w2; for(let x=0;x<w;x++){const ci=row+((x/f)|0), i=(y*w+x)*4; S[0][ci]+=d[i]; S[1][ci]+=d[i+1]; S[2][ci]+=d[i+2]; N[ci]++}}
+  for(let i=0;i<N.length;i++){const n=N[i]||1; S[0][i]/=n; S[1][i]/=n; S[2][i]/=n}
+  const r=Math.max(2,Math.round(Math.min(w2,h2)/9)), rb=Math.max(2,Math.round(r/2));
+  return {f,w2,h2,B:S.map(a=>boxAvg(boxMax(a,w2,h2,r),w2,h2,rb))};
+}
+function applyFilter(c,x,cw,ch,mode,bwOff){
+  if(mode==="orig") return false;
+  const id=x.getImageData(0,0,cw,ch), d=id.data, N=cw*ch, cl=v=>v<0?0:v>255?255:v; let png=false;
+  const lum=(r,g,b)=>.299*r+.587*g+.114*b;
+  if(mode==="gray"){ for(let i=0;i<d.length;i+=4){const v=lum(d[i],d[i+1],d[i+2]); d[i]=d[i+1]=d[i+2]=v} }
+  else if(mode==="bright"){ for(let i=0;i<d.length;i+=4)for(let k=0;k<3;k++){let v=Math.pow(d[i+k]/255,.78); v=(v-.5)*1.12+.53; d[i+k]=cl(v*255)} }
+  else if(mode==="doc"){
+    const gr=new Uint8Array(N); for(let i=0,j=0;i<d.length;i+=4,j++) gr[j]=lum(d[i],d[i+1],d[i+2]);
+    const hist=new Uint32Array(256); for(let j=0;j<gr.length;j++) hist[gr[j]]++;
+    let a=0,lo=0,hi=255,tot=gr.length; for(let v=0;v<256;v++){a+=hist[v]; if(a>=tot*.01){lo=v;break}} a=0; for(let v=255;v>=0;v--){a+=hist[v]; if(a>=tot*.02){hi=v;break}}
+    if(hi-lo<20){lo=0;hi=255}
+    for(let i=0,j=0;i<d.length;i+=4,j++){const v=cl((gr[j]-lo)*255/(hi-lo)); d[i]=d[i+1]=d[i+2]=v}
+  }else{
+    const {f,w2,h2,B}=bgEst(d,cw,ch), xs=new Int32Array(cw), xe=new Int32Array(cw), xw=new Float32Array(cw);
+    for(let xx=0;xx<cw;xx++){const fx=Math.min(w2-1,Math.max(0,(xx+.5)/f-.5)); xs[xx]=fx|0; xe[xx]=Math.min(w2-1,xs[xx]+1); xw[xx]=fx-xs[xx]}
+    let ra=0,rb2=0,rwy=0; const bil=(arr,xx)=>{const t=arr[ra+xs[xx]]*(1-xw[xx])+arr[ra+xe[xx]]*xw[xx], u=arr[rb2+xs[xx]]*(1-xw[xx])+arr[rb2+xe[xx]]*xw[xx]; return t*(1-rwy)+u*rwy};
+    const T=.78+(bwOff||0)/200, ss=(e0,e1,v)=>{const t=Math.max(0,Math.min(1,(v-e0)/(e1-e0))); return t*t*(3-2*t)};
+    for(let y=0;y<ch;y++){
+      const fy=Math.min(h2-1,Math.max(0,(y+.5)/f-.5)), y0=fy|0, y1=Math.min(h2-1,y0+1); ra=y0*w2; rb2=y1*w2; rwy=fy-y0;
+      for(let xx=0;xx<cw;xx++){
+        const i=(y*cw+xx)*4, R=d[i], G=d[i+1], Bv=d[i+2], bR=Math.max(20,bil(B[0],xx)), bG=Math.max(20,bil(B[1],xx)), bB=Math.max(20,bil(B[2],xx)), nL=lum(R,G,Bv)/lum(bR,bG,bB);
+        let o0,o1,o2;
+        if(mode==="nosh"){const v=cl(Math.pow(Math.min(1.1,nL),1.25)*262); o0=o1=o2=v}
+        else if(mode==="inv"){const v=255-cl(Math.pow(Math.min(1.1,nL),1.25)*262); o0=o1=o2=v}
+        else if(mode==="hp"){const v=ss(T-.38,T+.02,nL)*255; o0=o1=o2=v}
+        else if(mode==="save"){const v=nL<T-.07?0:255; o0=o1=o2=v}
+        else{ // magic, pro
+          let r0=cl(R/bR*252), g0=cl(G/bG*252), b0=cl(Bv/bB*252); const m=lum(r0,g0,b0), sat=mode==="pro"?1.3:1.2;
+          r0=cl(m+(r0-m)*sat); g0=cl(m+(g0-m)*sat); b0=cl(m+(b0-m)*sat);
+          if(mode==="pro"){const k=v=>cl(((v/255-.12)/.8)*255); r0=k(r0); g0=k(g0); b0=k(b0)}
+          o0=r0;o1=g0;o2=b0;
+        }
+        d[i]=o0; d[i+1]=o1; d[i+2]=o2;
+      }
+    }
+    png=mode==="hp"||mode==="save";
+    if(mode==="pro"){ // sharpen
+      const cp=new Uint8ClampedArray(d);
+      for(let y=1;y<ch-1;y++)for(let xx=1;xx<cw-1;xx++){const i=(y*cw+xx)*4; for(let k=0;k<3;k++){const v=cp[i+k]*5-cp[i+k-4]-cp[i+k+4]-cp[i+k-cw*4]-cp[i+k+cw*4]; d[i+k]=cp[i+k]+(v-cp[i+k])*.5}}
+    }
+  }
+  x.putImageData(id,0,0); return png;
+}
+const FILTERS=[["orig","Original"],["bright","Cerahkan"],["magic","Warna Ajaib"],["pro","Magic Pro"],["nosh","Tanpa Bayangan"],["doc","Dokumen"],["hp","H&P"],["save","Hemat"],["gray","Abu-abu"],["inv","Balik"]];
+let thKey=null;
+function buildStrip(){
+  const st=$("#scStrip"); if(!st) return; st.textContent=""; thKey=null;
+  FILTERS.forEach(([v,l])=>{
+    const b=document.createElement("button"); b.type="button"; b.className="fb"; b.dataset.v=v; b.setAttribute("role","option"); b.setAttribute("aria-label","Filter "+l);
+    const cv=document.createElement("canvas"); cv.width=cv.height=96; cv.dataset.v=v; const s=document.createElement("span"); s.textContent=l; b.append(cv,s);
+    b.onclick=()=>{$("#scF").value=v; syncStrip(); $("#scF").dispatchEvent(new Event("change",{bubbles:true}))};
+    st.append(b);
+  });
+  syncStrip();
+}
+function syncStrip(){const st=$("#scStrip"); if(!st) return; st.querySelectorAll(".fb").forEach(b=>{const on=b.dataset.v===$("#scF").value; b.classList.toggle("on",on); b.setAttribute("aria-selected",on?"true":"false")})}
+async function fillThumbs(){
+  const st=$("#scStrip"); if(!st) return; const f=files[0], key=f?f.bytes:"none"; if(key===thKey) return; thKey=key;
+  const cvs=[...st.querySelectorAll("canvas")];
+  if(!f){cvs.forEach(c=>{const x=c.getContext("2d"); x.fillStyle="#e6eceb"; x.fillRect(0,0,c.width,c.height)}); return}
+  let bmp; try{bmp=await bmpOf(f)}catch(e){return}
+  const S=96, base=document.createElement("canvas"); base.width=base.height=S; const bx=base.getContext("2d");
+  const sc=Math.max(S/bmp.width,S/bmp.height); bx.fillStyle="#fff"; bx.fillRect(0,0,S,S); bx.imageSmoothingQuality="high"; bx.drawImage(bmp,0,0,bmp.width*sc,bmp.height*sc); if(bmp.close) bmp.close();
+  if(thKey!==key) return;
+  for(const c of cvs){const x=c.getContext("2d",{willReadFrequently:true}); x.drawImage(base,0,0); try{applyFilter(c,x,S,S,c.dataset.v,0)}catch(e){}}
+}
 function trimWhite(bmp){
   const sc=Math.min(1,420/Math.max(bmp.width,bmp.height)), w=Math.max(1,Math.round(bmp.width*sc)), h=Math.max(1,Math.round(bmp.height*sc));
   const c=document.createElement("canvas"); c.width=w; c.height=h; const x=c.getContext("2d",{willReadFrequently:true}); x.drawImage(bmp,0,0,w,h);
@@ -1025,24 +1118,7 @@ async function makePage(g,o){
     if(!(o.mode!=="orig"||trimmed||crop||o.forceProc||Math.max(sw,sh)>o.maxd)){const g2=await normImg(g); return {...place,png:!!g2.png,bytes:g2.bytes}}
     const sc=Math.min(1,o.maxd/Math.max(sw,sh)), cw=Math.max(1,Math.round(sw*sc)), ch=Math.max(1,Math.round(sh*sc)), mode=o.mode;
     const c=document.createElement("canvas"); c.width=cw; c.height=ch; const x=c.getContext("2d",{willReadFrequently:true}); x.fillStyle="#fff"; x.fillRect(0,0,cw,ch); x.imageSmoothingQuality="high"; x.drawImage(bmp,sx,sy,sw,sh,0,0,cw,ch);
-    let png=false;
-    if(mode!=="orig"){
-      const id=x.getImageData(0,0,cw,ch), d=id.data, gr=new Uint8Array(cw*ch);
-      for(let i=0,j=0;i<d.length;i+=4,j++) gr[j]=(d[i]*299+d[i+1]*587+d[i+2]*114)/1000;
-      if(mode==="doc"){
-        const hist=new Uint32Array(256); for(let j=0;j<gr.length;j++) hist[gr[j]]++;
-        let a=0,lo=0,hi=255,tot=gr.length; for(let v=0;v<256;v++){a+=hist[v]; if(a>=tot*.01){lo=v;break}} a=0; for(let v=255;v>=0;v--){a+=hist[v]; if(a>=tot*.02){hi=v;break}}
-        if(hi-lo<20){lo=0;hi=255}
-        for(let i=0,j=0;i<d.length;i+=4,j++){const v=Math.max(0,Math.min(255,(gr[j]-lo)*255/(hi-lo))); d[i]=d[i+1]=d[i+2]=v}
-      }else{
-        const W1=cw+1, I=new Float64Array(W1*(ch+1));
-        for(let y=0;y<ch;y++){let r=0; for(let xx=0;xx<cw;xx++){r+=gr[y*cw+xx]; I[(y+1)*W1+xx+1]=I[y*W1+xx+1]+r}}
-        const rad=Math.max(8,Math.round(Math.min(cw,ch)/24));
-        for(let y=0;y<ch;y++){const y0=Math.max(0,y-rad),y1=Math.min(ch,y+rad+1); for(let xx=0;xx<cw;xx++){const x0=Math.max(0,xx-rad),x1=Math.min(cw,xx+rad+1), mm=(I[y1*W1+x1]-I[y0*W1+x1]-I[y1*W1+x0]+I[y0*W1+x0])/((x1-x0)*(y1-y0)), v=gr[y*cw+xx]<mm*(.82+(o.bw||0)/200)?0:255, i=(y*cw+xx)*4; d[i]=d[i+1]=d[i+2]=v}}
-        png=true;
-      }
-      x.putImageData(id,0,0);
-    }
+    const png=applyFilter(c,x,cw,ch,mode,o.bw);
     const bl=await new Promise(r=>c.toBlob(r,png?"image/png":"image/jpeg",o.q||.82)); c.width=c.height=0;
     return {...place,png,bytes:new Uint8Array(await bl.arrayBuffer())};
   }finally{if(bmp.close) bmp.close()}
@@ -1050,10 +1126,10 @@ async function makePage(g,o){
 const pgOpts=k=>k==="scan"
   ?{k:.4,mode:$("#scF").value,sz:$("#scSz").value,m:Number($("#scMar").value)||0,fit:$("#scFit").value,trim:$("#scTrim").checked,bw:Number($("#scBw").value)||0,maxd:2200,q:.82}
   :{k:.75,mode:"orig",sz:$("#ipSize").value,m:Number($("#ipMar").value)||0,fit:$("#ipFit").value,trim:$("#ipTrim").checked,maxd:4000,q:.92};
-$("#opts").addEventListener("change",e=>{if(tool==="scan"&&$("#scBwRow")) $("#scBwRow").hidden=$("#scF").value!=="bw"; if((tool==="scan"||tool==="i2p")&&e.target.id!=="scIn") drawSel()});
+$("#opts").addEventListener("change",e=>{if(tool==="scan"&&$("#scBwRow")) $("#scBwRow").hidden=!["hp","save"].includes($("#scF").value); if((tool==="scan"||tool==="i2p")&&e.target.id!=="scIn") drawSel()});
 const pvCache=new WeakMap(); let pvTok=0;
 async function drawPgPrev(k){
-  const box=$("#selBox");
+  const box=$("#selBox"); if(k==="scan"){syncStrip(); fillThumbs()}
   if(!files.length||!$(k==="scan"?"#scFit":"#ipFit")){box.hidden=true;box.innerHTML="";return}
   box.hidden=false; const tok=++pvTok, o=Object.assign(pgOpts(k),{maxd:560,q:.7,forceProc:true}), key=[o.mode,o.sz,o.m,o.fit,o.trim,o.bw].join("|");
   box.innerHTML='<div class="sh"><div><b>Pratinjau hasil</b><span class="badge"></span></div></div><div class="pgwrap" id="pgw"></div><p class="note">Pratinjau mengikuti pilihan di panel dan diperbarui otomatis. Hasil akhir memakai resolusi penuh.</p>';
