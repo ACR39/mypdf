@@ -205,6 +205,11 @@ body.bgmode .sheet{background:color-mix(in srgb,var(--panel) 86%,transparent);-w
 .fb canvas{display:block;width:100%;aspect-ratio:1;background:#e6eceb}
 .fb span{display:block;font-size:.72rem;padding:3px 2px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
 .fb.on{border-color:var(--acc)}.fb.on span{background:var(--acc);color:var(--acc-ink)}
+
+#setM{position:fixed;inset:0;z-index:95;background:rgba(10,20,24,.7);display:grid;place-items:center;padding:16px}
+#setM .box{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;max-width:440px;width:100%;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+#setM h3{margin:0 0 2px;font-size:1.05rem}#setM p{margin:0;font-size:.88rem;color:var(--mute);line-height:1.45}#setM .msg{min-height:1.2em;color:var(--acc);font-weight:500}
+#setM .row{display:flex;gap:8px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -259,6 +264,7 @@ body.bgmode .sheet{background:color-mix(in srgb,var(--panel) 86%,transparent);-w
   <button class="ib plain" id="bMode" aria-label="Ganti mode gambar: latar belakang atau kartu"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></span></button>
   <button class="ib plain" id="bImgX" aria-label="Sembunyikan gambar tema" title="Sembunyikan gambar tema"><span class="ic"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></span></button>
   <input type="file" id="imgIn" accept="image/*" hidden>
+  <button class="ib plain" id="bSet" aria-label="Pengaturan tersimpan" title="Pengaturan tersimpan"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></span></button>
   <button class="ib plain" id="bSave" aria-label="Simpan semua hasil" disabled><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 4v11m-4-4 4 4 4-4M5 20h14"/></svg></span></button>
  </nav>
 </div>
@@ -315,7 +321,7 @@ let dl=null;
 try{ if(window.claude&&claude.use) claude.use("downloads").then(d=>{dl=d}).catch(()=>{}) }catch(e){}
 
 /* tema */
-$("#bTheme").onclick=()=>{const r=document.documentElement,d=r.dataset.theme==="dark"||(!r.dataset.theme&&matchMedia("(prefers-color-scheme:dark)").matches);r.dataset.theme=d?"light":"dark"};
+$("#bTheme").onclick=()=>{const r=document.documentElement,d=r.dataset.theme==="dark"||(!r.dataset.theme&&matchMedia("(prefers-color-scheme:dark)").matches);r.dataset.theme=d?"light":"dark"; ST.set("theme",r.dataset.theme)};
 $("#bOrg").onclick=()=>showGrp("Organisasi"); $("#bConv").onclick=()=>showGrp("Konversi");
 $("#bHelp").onclick=()=>{const h=$("#helpBox");h.hidden=!h.hidden};
 
@@ -472,6 +478,7 @@ function openTool(k){
   if(k==="bw"){ $("#bwT").oninput=()=>{$("#bwTv").textContent=$("#bwT").value} }
   if(k==="ocr") o.innerHTML='<label for="ocL">Bahasa teks</label><select id="ocL"><option value="ind+eng" selected>Indonesia + Inggris</option><option value="ind">Indonesia</option><option value="eng">Inggris</option></select><label for="ocO">Hasil</label><select id="ocO"><option value="pdf" selected>PDF yang bisa dicari (tampilan asli tetap)</option><option value="txt">Berkas teks (.txt)</option></select><label for="ocR">Halaman (kosong = semua halaman)</label><input type="text" id="ocR" placeholder="1-3, 5, 8-10"><p class="note">Pemakaian pertama menyiapkan mesin OCR dulu, sekitar beberapa detik. Hasil terbaik untuk teks cetak yang lurus dan jelas. Tulisan tangan tidak dikenali dengan baik. Di hasil PDF, teks disisipkan tak terlihat di atas gambar halaman.</p><button class="btn pri full" id="go" style="margin-top:12px">Jalankan OCR</button>';
   $("#go").onclick=()=>run(k);
+  restoreOpts(k);
   setSt(""); drawFiles();
 }
 
@@ -1373,7 +1380,7 @@ async function compressWith(pdf,q,sc,label){
 const CRCT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
 const crc32=b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRCT[(c^b[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0};
 const cat=ps=>{const o=new Uint8Array(ps.reduce((a,p)=>a+p.length,0));let k=0;ps.forEach(p=>{o.set(p,k);k+=p.length});return o};
-const mime=n=>({jpg:"image/jpeg",jpeg:"image/jpeg",png:"image/png",txt:"text/plain;charset=utf-8",zip:"application/zip",docx:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"})[n.split(".").pop().toLowerCase()]||"application/pdf";
+const mime=n=>({jpg:"image/jpeg",jpeg:"image/jpeg",png:"image/png",txt:"text/plain;charset=utf-8",zip:"application/zip",docx:"application/vnd.openxmlformats-officedocument.wordprocessingml.document",json:"application/json"})[n.split(".").pop().toLowerCase()]||"application/pdf";
 function makeZip(files){
   const enc=new TextEncoder(), parts=[], cen=[]; let off=0;
   for(const f of files){
@@ -2485,9 +2492,70 @@ $("#imgIn").onchange=e=>{
   const f=e.target.files[0]; e.target.value=""; if(!f||!/^image\//.test(f.type)) return;
   if(mUrl) URL.revokeObjectURL(mUrl); mUrl=URL.createObjectURL(f);
   $("#mascot").src=mUrl; document.documentElement.style.setProperty("--art",'url("'+mUrl+'")');
-  if(art==="off") art="bg"; applyArt();
+  if(art==="off") art="bg"; applyArt(); idbSet("img",f);
 };
 $("#bImgX").onclick=()=>{art=art==="off"?"bg":"off";applyArt()};
+
+const ST={get(k,d){try{const v=localStorage.getItem("mp_"+k); return v===null?d:JSON.parse(v)}catch(e){return d}}, set(k,v){try{localStorage.setItem("mp_"+k,JSON.stringify(v))}catch(e){}}, del(k){try{localStorage.removeItem("mp_"+k)}catch(e){}}};
+const idbOpen=()=>new Promise((ok,er)=>{try{const r=indexedDB.open("mypdf",1); r.onupgradeneeded=()=>r.result.createObjectStore("kv"); r.onsuccess=()=>ok(r.result); r.onerror=()=>er(r.error)}catch(e){er(e)}});
+async function idbGet(k){try{const d=await idbOpen(); return await new Promise((ok,er)=>{const r=d.transaction("kv").objectStore("kv").get(k); r.onsuccess=()=>ok(r.result); r.onerror=()=>er(r.error)})}catch(e){return undefined}}
+async function idbSet(k,v){try{const d=await idbOpen(); await new Promise((ok,er)=>{const t=d.transaction("kv","readwrite"); if(v===undefined) t.objectStore("kv").delete(k); else t.objectStore("kv").put(v,k); t.oncomplete=ok; t.onerror=()=>er(t.error)})}catch(e){}}
+const OPT_TOOLS=new Set(["compress","bw","tidy","scan","i2p","resz","nup","num","hf","img","cln","cmp","txt","exi","p2w","w2p","ocr"]);
+const OPT_SKIP=new Set(["scIn","fi","imgIn","cmR","setIn"]);
+let restoring=false;
+const optEls=()=>[...document.querySelectorAll("#opts select,#opts input")].filter(e=>e.id&&!OPT_SKIP.has(e.id)&&!["file","text","button","password","search"].includes(e.type));
+function saveOpts(){
+  if(restoring||!tool||!OPT_TOOLS.has(tool)) return;
+  const all=ST.get("opts",{})||{}, o={}; optEls().forEach(e=>{o[e.id]=e.type==="checkbox"?e.checked:e.value}); all[tool]=o; ST.set("opts",all);
+}
+function restoreOpts(k){
+  if(!OPT_TOOLS.has(k)) return; const o=(ST.get("opts",{})||{})[k]; if(!o) return; restoring=true;
+  try{
+    optEls().forEach(e=>{
+      if(!(e.id in o)) return;
+      if(e.type==="checkbox") e.checked=!!o[e.id];
+      else if(e.tagName==="SELECT"){ if([...e.options].some(op=>op.value===o[e.id])) e.value=o[e.id]; else return }
+      else e.value=o[e.id];
+      e.dispatchEvent(new Event("input",{bubbles:true})); e.dispatchEvent(new Event("change",{bubbles:true}));
+    });
+    if(k==="scan"){syncStrip(); if($("#scBwRow")) $("#scBwRow").hidden=!["hp","save"].includes($("#scF").value); if($("#scBwV")) $("#scBwV").textContent=$("#scBw").value}
+  }finally{restoring=false}
+}
+$("#opts").addEventListener("change",saveOpts); $("#opts").addEventListener("input",saveOpts);
+{const t=ST.get("theme",null); if(t==="dark"||t==="light") document.documentElement.dataset.theme=t}
+function useImg(b){ if(!(b instanceof Blob)) return; if(mUrl) URL.revokeObjectURL(mUrl); mUrl=URL.createObjectURL(b); $("#mascot").src=mUrl; document.documentElement.style.setProperty("--art",'url("'+mUrl+'")') }
+idbGet("img").then(useImg);
+const blobData=b=>new Promise(ok=>{const r=new FileReader(); r.onload=()=>ok(r.result); r.onerror=()=>ok(null); r.readAsDataURL(b)});
+$("#bSet").onclick=()=>{
+  const prevFocus=document.activeElement, ov=document.createElement("div"); ov.id="setM"; ov.setAttribute("role","dialog"); ov.setAttribute("aria-modal","true"); ov.setAttribute("aria-label","Pengaturan tersimpan");
+  ov.innerHTML='<div class="box"><h3>Pengaturan tersimpan</h3><p>Tema, gambar tema, mode gambar, dan pilihan di tiap alat (filter, kertas, margin, tingkat kompres, dan sebagainya) tersimpan otomatis di peramban ini. Alat ini berjalan sepenuhnya di peramban tanpa server, jadi tidak ada akun atau login. Untuk memindahkan pengaturan ke HP atau komputer lain, simpan ke berkas cadangan lalu muat di sana.</p><div class="row"><button class="btn sm pri" id="stEx">Simpan cadangan ke berkas</button><button class="btn sm" id="stIm">Muat dari berkas</button></div><div class="row"><button class="btn sm" id="stRs">Atur ulang semua</button><span style="flex:1"></span><button class="btn sm" id="stX">Tutup</button></div><p class="msg" id="stMsg" aria-live="polite"></p><input type="file" id="setIn" accept=".json,application/json" hidden></div>';
+  document.body.append(ov); const msg=t=>{ov.querySelector("#stMsg").textContent=t};
+  const close=()=>{window.removeEventListener("keydown",key,true); ov.remove(); if(prevFocus&&prevFocus.focus) try{prevFocus.focus()}catch(e){}};
+  const key=e=>{if(e.key==="Escape"){e.stopPropagation();close()}}; window.addEventListener("keydown",key,true);
+  ov.onclick=e=>{if(e.target===ov) close()}; ov.querySelector("#stX").onclick=close; ov.querySelector("#stX").focus();
+  ov.querySelector("#stEx").onclick=async()=>{
+    const b=await idbGet("img"), data={app:"mypdf",v:1,theme:ST.get("theme",null),art:(()=>{try{return localStorage.getItem("art2")}catch(e){return null}})(),opts:ST.get("opts",{}),image:b instanceof Blob?await blobData(b):null};
+    await save("mypdf-pengaturan.json",new TextEncoder().encode(JSON.stringify(data))); msg("Cadangan disimpan: mypdf-pengaturan.json");
+  };
+  ov.querySelector("#stIm").onclick=()=>ov.querySelector("#setIn").click();
+  ov.querySelector("#setIn").onchange=async e=>{
+    const f=e.target.files[0]; e.target.value=""; if(!f) return;
+    try{
+      const d=JSON.parse(await f.text()); if(!d||d.app!=="mypdf") throw 0;
+      if(d.theme==="dark"||d.theme==="light"){ST.set("theme",d.theme); document.documentElement.dataset.theme=d.theme}
+      if(d.art==="bg"||d.art==="card"||d.art==="off"){art=d.art; applyArt()}
+      if(d.opts&&typeof d.opts==="object") ST.set("opts",d.opts);
+      if(typeof d.image==="string"&&d.image.startsWith("data:image/")){const bl=await (await fetch(d.image)).blob(); await idbSet("img",bl); useImg(bl)}
+      if(tool&&OPT_TOOLS.has(tool)) restoreOpts(tool);
+      msg("Pengaturan dimuat.");
+    }catch(er){msg("Berkas bukan cadangan pengaturan MY PDF yang valid.")}
+  };
+  let sure=false; const rs=ov.querySelector("#stRs");
+  rs.onclick=async()=>{
+    if(!sure){sure=true; rs.textContent="Yakin? Tekan lagi"; setTimeout(()=>{sure=false;rs.textContent="Atur ulang semua"},4000); return}
+    ["theme","opts"].forEach(k=>ST.del(k)); try{localStorage.removeItem("art2")}catch(e){} await idbSet("img",undefined); msg("Diatur ulang. Memuat ulang…"); setTimeout(()=>location.reload(),400);
+  };
+};
 applyArt();
 drawList(); drawFiles();
 };
