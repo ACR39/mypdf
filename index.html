@@ -217,6 +217,7 @@ body.bgmode .sheet{background:color-mix(in srgb,var(--panel) 86%,transparent);-w
 
 :root{--bri:1}
 select option,select optgroup{background-color:color-mix(in srgb,var(--panel) calc(var(--bri)*100%),#000);color:color-mix(in srgb,var(--ink) calc(var(--bri)*100%),#000)}
+.chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}.chain .meta{margin-right:2px}
 </style>
 </head>
 <body>
@@ -260,7 +261,7 @@ select option,select optgroup{background-color:color-mix(in srgb,var(--panel) ca
     <div id="selBox" hidden></div>
    </div>
    <div class="status" id="st" aria-live="polite"></div>
-   <div class="res" id="res" hidden><h4>Hasil</h4><div class="zrow" id="zrow" hidden><span class="meta">Unduh semua sekaligus:</span><input type="text" class="rn" id="zname" value="hasil" aria-label="Nama berkas ZIP"><span class="ext">.zip</span><button class="btn sm pri" id="zgo">Simpan ZIP</button></div><div class="cards" id="resList"></div></div>
+   <div class="res" id="res" hidden><h4>Hasil</h4><div class="zrow" id="zrow" hidden><span class="meta">Unduh semua sekaligus:</span><input type="text" class="rn" id="zname" value="hasil" aria-label="Nama berkas ZIP"><span class="ext">.zip</span><button class="btn sm pri" id="zgo">Simpan ZIP</button></div><div class="cards" id="resList"></div><div class="chain" id="chain" hidden></div></div>
   </div>
   <footer class="credit">MY PDF by ACR7</footer>
  </main>
@@ -1344,6 +1345,27 @@ function showRes(items){
     inp.onkeydown=e=>{if(e.key==="Enter")b.click()};
     c.append(inp,ext,mt,b); box.append(c);
   });
+  buildChain(items);
+}
+
+function buildChain(items){
+  const box=$("#chain"); if(!box) return; box.innerHTML="";
+  const pdfs=items.filter(i=>/\.pdf$/i.test(i.name)); if(!pdfs.length||pdfs.length!==items.length){box.hidden=true;return}
+  const src=tool, multi=pdfs.length>1, total=pdfs.reduce((s,i)=>s+i.bytes.length,0);
+  let ks=multi?["merge"]:(src==="scan"||src==="i2p")?["compress","ocr","order","num","wm","merge"]:["compress","order","num","wm","bw","split","merge"];
+  ks=ks.filter(k=>TOOLS[k]&&k!==src).slice(0,6); if(!ks.length){box.hidden=true;return}
+  const lab=document.createElement("span"); lab.className="meta"; lab.textContent="Lanjutkan ke alat lain tanpa mengunduh ("+fmt(total)+"):"; box.append(lab);
+  ks.forEach(k=>{
+    const b=document.createElement("button"); b.type="button"; b.className="btn sm"+(k==="compress"&&total>=5*1048576?" pri":""); b.textContent=TOOLS[k].title;
+    b.onclick=async()=>{
+      const fs=pdfs.map(it=>new File([it.bytes],it.name,{type:"application/pdf"})), prev=TOOLS[src]?TOOLS[src].title:"";
+      clearAll(); $("#res").hidden=true; $("#bSave").disabled=true; openTool(k); await addFiles(fs);
+      setSt("Hasil "+prev+" langsung dipakai di "+TOOLS[k].title+", tidak perlu diunduh dulu.");
+      window.scrollTo({top:0,behavior:"smooth"});
+    };
+    box.append(b);
+  });
+  box.hidden=false;
 }
 $("#zgo").onclick=async()=>{
   const used=new Set(), fl=results.map(r=>{let n=r.name,k=1;while(used.has(n)){k++;n=r.name.replace(/(\.\w+)$/,"-"+k+"$1")}used.add(n);return{name:n,bytes:r.bytes}});
