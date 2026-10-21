@@ -1329,7 +1329,7 @@ async function save(name,bytes){
 const cleanName=(v,x="pdf")=>(v.replace(new RegExp("\\."+x+"$","i"),"").replace(/[\\/:*?"<>|\u0000-\u001f]/g,"").trim().slice(0,120)||"hasil")+"."+x;
 function showRes(items){
   results=items; $("#res").hidden=false; $("#bSave").disabled=false;
-  $("#zrow").hidden=items.length<2; if(items.length>1) $("#zname").value=files[sel]?files[sel].name.replace(/\.\w+$/,""):"hasil";
+  $("#zrow").hidden=items.length<2; if(items.length>1) $("#zname").value=(files[sel]?files[sel].name.replace(/\.\w+$/,""):"hasil")+(tool&&TOOLS[tool]?"-"+TOOLS[tool].title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""):"");
   const box=$("#resList"); box.innerHTML="";
   items.forEach(it=>{
     const x=(it.name.match(/\.(\w+)$/)||[0,"pdf"])[1].toLowerCase();
@@ -2026,7 +2026,7 @@ async function run(k){
         let d=docs.get(p.f); if(!d){d=await PDFLib.PDFDocument.load(p.f.bytes,{ignoreEncryption:true});docs.set(p.f,d)}
         const [pg]=await out.copyPages(d,[p.i]); out.addPage(pg);
       }
-      showRes([{name:"gabungan.pdf",bytes:await out.save()}]); setSt("Selesai: "+out.getPageCount()+" halaman.");
+      showRes([{name:files[0].name.replace(/\.\w+$/,"")+"-gabungan.pdf",bytes:await out.save()}]); setSt("Selesai: "+out.getPageCount()+" halaman.");
     }
     if(k==="split"&&$("#sfmt").value==="jpg"){
       const [q,sc]=$("#jq").value.split("|").map(Number), items=await pagesToImages(f,pickIdx(f),"jpg",q,sc);
@@ -2037,7 +2037,7 @@ async function run(k){
       showRes(items); setSt("Selesai: "+items.length+" gambar "+t.toUpperCase()+".");
     }
     if(k==="p2w"){
-      const bytes=await pdfToDocx(f); showRes([{name:base(f.name)+".docx",bytes}]);
+      const bytes=await pdfToDocx(f); showRes([{name:base(f.name)+"-word.docx",bytes}]);
       setSt("Selesai: "+p2wStat.tbl+" tabel dan "+p2wStat.img+" gambar ikut terbawa, selain teks dan paragraf.");
     }
     if(k==="w2p"){
@@ -2062,7 +2062,7 @@ async function run(k){
         const r=await makePage(files[i],o), im=r.png?await doc.embedPng(r.bytes):await doc.embedJpg(r.bytes);
         doc.addPage([r.pw,r.ph]).drawImage(im,{x:r.x,y:r.y,width:r.w,height:r.h});
       }
-      showRes([{name:files.length>1?"gambar-digabung.pdf":files[0].name.replace(/\.\w+$/,"")+".pdf",bytes:await doc.save()}]); setSt("Selesai: "+files.length+" halaman.");
+      showRes([{name:files[0].name.replace(/\.\w+$/,"")+"-gambar.pdf",bytes:await doc.save()}]); setSt("Selesai: "+files.length+" halaman.");
     }
     if(k==="num"){
       const txt=$("#pnPages").value.trim(), start=Math.max(0,Math.floor(Number($("#pnStart").value)||1)), size=Math.min(48,Math.max(6,Number($("#pnSize").value)||11));
@@ -2214,7 +2214,7 @@ async function run(k){
         t=t.replace(/\n{3,}/g,"\n\n").trim(); tot+=t.replace(/\s/g,"").length; out.push("--- Halaman "+i+" ---\n"+t); pg.cleanup();
       }
       if(!tot) throw new Error("Tidak ada teks yang bisa diambil. PDF ini mungkin hasil pindai (gambar) dan butuh OCR.");
-      showRes([{name:base(f.name)+".txt",bytes:new TextEncoder().encode("\ufeff"+out.join("\n\n")+"\n")}]); setSt("Selesai: "+tot+" karakter dari "+pdf.numPages+" halaman.");
+      showRes([{name:base(f.name)+"-teks.txt",bytes:new TextEncoder().encode("\ufeff"+out.join("\n\n")+"\n")}]); setSt("Selesai: "+tot+" karakter dari "+pdf.numPages+" halaman.");
     }
     if(k==="info"){
       const P=PDFLib, N=x=>P.PDFName.of(x), q=$("#inQ").value.trim(), cs=$("#inCase").checked, out=$("#inOut"); out.textContent="";
@@ -2365,7 +2365,7 @@ async function run(k){
         const pg=doc.addPage([r.pw,r.ph]); if(o.mode!=="orig") pg.drawRectangle({x:0,y:0,width:r.pw,height:r.ph,color:PDFLib.rgb(1,1,1)});
         pg.drawImage(im,{x:r.x,y:r.y,width:r.w,height:r.h});
       }
-      showRes([{name:"pindai.pdf",bytes:await doc.save()}]); setSt("Selesai: "+files.length+" halaman.");
+      showRes([{name:files[0].name.replace(/\.\w+$/,"")+"-pindai.pdf",bytes:await doc.save()}]); setSt("Selesai: "+files.length+" halaman.");
     }
     if(k==="blank"){
       if(blFile!==f||!blInk) throw new Error("Tunggu sampai pemeriksaan halaman selesai.");
@@ -2385,7 +2385,7 @@ async function run(k){
         if(!isImg(o)||skip.has(ref.toString())) continue; const d=o.dict, w=num(d.get(N("Width"))), h=num(d.get(N("Height")));
         if(!w||!h||nm(d.get(N("ImageMask")))==="true"||w<minpx||h<minpx) continue; seen++; setSt("Membaca gambar "+seen+"…");
         let fl=d.get(N("Filter")); const fs=fl instanceof P.PDFArray?fl.asArray().map(nm):fl?[nm(fl)]:[];
-        if(fs.length===1&&fs[0]==="/DCTDecode"){out.push({name:"gambar-"+pad(out.length+1)+".jpg",bytes:o.contents});continue}
+        if(fs.length===1&&fs[0]==="/DCTDecode"){out.push({name:base(f.name)+"-gambar-"+pad(out.length+1)+".jpg",bytes:o.contents});continue}
         if(fs.length===1&&fs[0]==="/FlateDecode"&&num(d.get(N("BitsPerComponent")))===8){
           let cs=d.get(N("ColorSpace")); if(cs instanceof P.PDFRef) cs=ctx.lookup(cs); let n=0;
           if(nm(cs)==="/DeviceRGB"||nm(cs)==="/CalRGB") n=3; else if(nm(cs)==="/DeviceGray"||nm(cs)==="/CalGray") n=1;
@@ -2399,7 +2399,7 @@ async function run(k){
             const c=document.createElement("canvas"); c.width=w; c.height=h; const x=c.getContext("2d"), id=x.createImageData(w,h);
             for(let i=0,j=0;i<w*h;i++,j+=4){const s0=i*n; id.data[j]=raw[s0]; id.data[j+1]=n===3?raw[s0+1]:raw[s0]; id.data[j+2]=n===3?raw[s0+2]:raw[s0]; id.data[j+3]=255}
             x.putImageData(id,0,0); const bl=await new Promise(r=>c.toBlob(r,"image/png")); c.width=c.height=0;
-            out.push({name:"gambar-"+pad(out.length+1)+".png",bytes:new Uint8Array(await bl.arrayBuffer())});
+            out.push({name:base(f.name)+"-gambar-"+pad(out.length+1)+".png",bytes:new Uint8Array(await bl.arrayBuffer())});
           }catch(e){skipped++}
           continue;
         }
